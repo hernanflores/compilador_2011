@@ -1,0 +1,36 @@
+ 
+ int a=3,b=2,c=1;
+ char d='b',e,g;
+ float ar[2]={0.1,0.3};
+
+void fconcat(char a,char b,char & c)
+ {
+  c=b;
+ }
+ 
+ float fsuma(int a, float b)
+ {
+  return(a+b);
+}
+ 
+float flee(float a[], int i)
+ {
+  cin >>a[i];
+  return(a[i]);
+ }
+
+ void main()
+ {
+  while((a=a-1)>0)
+  {
+  b=b+c;
+  
+  }
+  fconcat(d,e,g);
+  ar[1]=fsuma(a,ar[0]);
+  cout<< (flee(ar,a));
+ }
+ 
+ 
+
+
