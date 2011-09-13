@@ -5,8 +5,13 @@
 #define EXTERNA extern
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "codigos.h"
 #include "var_globales.h"
+#include "ts.h"
+#include "error.h"
+
 
 /*********** prototipos *************/
 
@@ -42,6 +47,12 @@ void termino();
 void factor();
 void llamada_funcion();
 void lista_expresiones();
+
+
+/* Funciones agregadas */
+/*Chequea si existe la funcion main, el tipo de
+ retorno que sea void y que tenga parametros en su invocación*/
+void existFuncionMain();
 
 
 void scanner ();
@@ -95,12 +106,21 @@ int main( int argc,char *argv[]) {
     }
   }
   
+  
   sbol=&token1 ;/* la variable token */
+  
+  inic_tablas();
   
   scanner();
   unidad_traduccion();
   
   if (sbol->codigo != CEOF) error_handler(41);
+  /*Chequemos funcion main*/
+  existFuncionMain();
+  /*Chequemos que no haya errores, sino imprimos errores*/
+  //if (cant_errores_x_linea > 0) {
+        error_handler(COD_IMP_ERRORES);
+  //}
   
 }
 
@@ -600,15 +620,34 @@ void constante(){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+void existFuncionMain() {
+    
+    int pos = en_tabla("main");
+        
+    if (en_tabla("main") == NIL ) {
+        /*No existe función main*/
+        error_handler(15);
+        return;
+        
+    }
+    
+    if (ts[en_tabla("main")].ets -> ptr_tipo == en_tabla("void")){
+         /* no de tipo vod*/
+        error_handler(35);
+        return;
+    
+    }
+    
+    if(Clase_Ident("main") != CLASFUNC) {
+        /* no es clase  funcion */
+        error_handler(20);
+         return;
+    }
+    
+    if (ts[en_tabla("main")].ets->desc.part_var.sub.cant_par > 0) {
+        /* la funcion main no lleva parametros*/
+        error_handler(36);
+         return;
+    }
+    
+}
