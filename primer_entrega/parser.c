@@ -622,8 +622,6 @@ void constante(){
 
 void existFuncionMain() {
     
-    int pos = en_tabla("main");
-        
     if (en_tabla("main") == NIL ) {
         /*No existe función main*/
         error_handler(15);
