@@ -1,6 +1,6 @@
 /******************************************************************
             Este es el archivo correspondiente al PARSER
-*******************************************************************/
+ *******************************************************************/
 
 #define EXTERNA extern
 
@@ -54,8 +54,14 @@ void lista_expresiones();
  retorno que sea void y que tenga parametros en su invocación*/
 void existFuncionMain();
 
+void insertarEnTSFuncionError(char lexema[]);
 
-void scanner ();
+void insertarEnTSVariableError(char lexema[]);
+
+void insertarEnTSArregloError(char lexema[]);
+
+
+void scanner();
 
 /********** variables globales ************/
 
@@ -65,587 +71,689 @@ token *sbol;
 
 extern FILE *yyin;
 
+/**
+ variable para verificar retornon de función*/
+int checkreturn;
 
 void scanner() {
-  int i;
+    int i;
 
-  for (;(i=yylex())!= NADA && sbol->codigo == SEGUIR;);
-  if (i == NADA) sbol->codigo = CEOF;
-  /* yylex retorna 0 si llego a fin de archivo */
+    for (; (i = yylex()) != NADA && sbol->codigo == SEGUIR;);
+    if (i == NADA) sbol->codigo = CEOF;
+    /* yylex retorna 0 si llego a fin de archivo */
 
-  liberar = linea;
-  linea = (char *) malloc (strlen(linea) + strlen (token1.lexema) + 3);
-  strcpy(linea, liberar);
-  strcat(linea, token1.lexema);
-  free ( (void *) liberar);
+    liberar = linea;
+    linea = (char *) malloc(strlen(linea) + strlen(token1.lexema) + 3);
+    strcpy(linea, liberar);
+    strcat(linea, token1.lexema);
+    free((void *) liberar);
 
-  /* El alumno debera dar una solucion al problema que las constantes
-    enteras y flotantes son entregadas como strings al parser */
+    /* El alumno debera dar una solucion al problema que las constantes
+      enteras y flotantes son entregadas como strings al parser */
 }
 
+int main(int argc, char *argv[]) {
 
-int main( int argc,char *argv[]) {
+    /* el alumno debera inicializar la variable yyin segun corresponda */
 
-  /* el alumno debera inicializar la variable yyin segun corresponda */
- 
-  linea = (char *) malloc (2);
-  strcat(linea, "");
+    linea = (char *) malloc(2);
+    strcat(linea, "");
 
-  nro_linea=0;
+    nro_linea = 0;
 
-  if (argc != 2) {
-    error_handler(6);
-    error_handler(COD_IMP_ERRORES);
-    exit(1);  
-  }
-  else {
-    if ((yyin = fopen(argv[1], "r" )) == NULL) {
-      error_handler(7);
-      error_handler(COD_IMP_ERRORES);
-      exit(1);
+    if (argc != 2) {
+        error_handler(6);
+        error_handler(COD_IMP_ERRORES);
+        exit(1);
+    } else {
+        if ((yyin = fopen(argv[1], "r")) == NULL) {
+            error_handler(7);
+            error_handler(COD_IMP_ERRORES);
+            exit(1);
+        }
     }
-  }
-  
-  
-  sbol=&token1 ;/* la variable token */
-  
-  inic_tablas();
-  
-  scanner();
-  unidad_traduccion();
-  
-  if (sbol->codigo != CEOF) error_handler(41);
-  /*Chequemos funcion main*/
-  existFuncionMain();
-  /*Chequemos que no haya errores, sino imprimos errores*/
-  if (cant_errores_x_linea > 0) {
-     error_handler(COD_IMP_ERRORES);
-  }
-  
-}
 
+
+    sbol = &token1; /* la variable token */
+
+    inic_tablas();
+
+    scanner();
+    unidad_traduccion();
+
+    if (sbol->codigo != CEOF) error_handler(41);
+    /*Chequemos funcion main*/
+    existFuncionMain();
+    /*Chequemos que no haya errores, sino imprimos errores*/
+    if (cant_errores_x_linea > 0) {
+        error_handler(COD_IMP_ERRORES);
+    }
+
+}
 
 /********* funciones del parser ***********/
 
-void unidad_traduccion(){
+void unidad_traduccion() {
 
-  while (sbol->codigo == CVOID || sbol->codigo == CCHAR || 
-         sbol->codigo == CINT || sbol->codigo == CFLOAT) 
-    declaraciones();
+    while (sbol->codigo == CVOID || sbol->codigo == CCHAR ||
+            sbol->codigo == CINT || sbol->codigo == CFLOAT)
+        declaraciones();
 }
 
-void declaraciones(){
+void declaraciones() {
 
-  especificador_tipo();
-  if (sbol->codigo == CIDENT) scanner();
-  else error_handler(16);
-  especificador_declaracion();
+    especificador_tipo();
+    if (sbol->codigo == CIDENT) scanner();
+    else error_handler(16);
+    especificador_declaracion();
 }
 
-void especificador_tipo(){
+void especificador_tipo() {
 
-  switch (sbol->codigo) {
-    case CVOID: scanner(); break;
-    case CCHAR: scanner(); break;
-    case CINT: scanner(); break;
-    case CFLOAT: scanner(); break;
-    default: error_handler(17);
-  }
+    switch (sbol->codigo) {
+        case CVOID: scanner();
+            break;
+        case CCHAR: scanner();
+            break;
+        case CINT: scanner();
+            break;
+        case CFLOAT: scanner();
+            break;
+        default: error_handler(17);
+    }
 }
 
-void especificador_declaracion(){
+void especificador_declaracion() {
 
-  switch (sbol->codigo) {
-    case CPAR_ABR: definicion_funcion(); break;
-    case CASIGNAC:
-    case CCOR_ABR:
-    case CCOMA:
-    case CPYCOMA:  declaracion_variable(); break;
-    default: error_handler(18);
-  }
-
-}
-
-void definicion_funcion(){
-
-  if (sbol->codigo == CPAR_ABR) scanner();
-  else error_handler(19);
-
-  if (sbol->codigo == CVOID || sbol->codigo == CCHAR || 
-      sbol->codigo == CINT || sbol->codigo == CFLOAT) 
-   lista_declaraciones_param();
-
-  if (sbol->codigo == CPAR_CIE) scanner();
-  else error_handler(20);
-
-  proposicion_compuesta();
+    switch (sbol->codigo) {
+        case CPAR_ABR: definicion_funcion();
+            break;
+        case CASIGNAC:
+        case CCOR_ABR:
+        case CCOMA:
+        case CPYCOMA: declaracion_variable();
+            break;
+        default: error_handler(18);
+    }
 
 }
 
-void lista_declaraciones_param(){
+void definicion_funcion() {
 
-  declaracion_parametro();
-  
-  while (sbol->codigo ==CCOMA) {
-      scanner();
+    if (sbol->codigo == CPAR_ABR) scanner();
+    else error_handler(19);
 
-      declaracion_parametro();
+    if (sbol->codigo != CVOID) {
+        checkreturn = 0;
+    } else {
+        checkreturn = 1;
+    }
+
+    if (sbol->codigo == CVOID || sbol->codigo == CCHAR ||
+            sbol->codigo == CINT || sbol->codigo == CFLOAT)
+        lista_declaraciones_param();
+
+    if (sbol->codigo == CPAR_CIE) scanner();
+    else error_handler(20);
+
+    proposicion_compuesta();
+
+    if (!checkreturn) {
+        error_handler(37);
+    }
+
+}
+
+void lista_declaraciones_param() {
+
+    declaracion_parametro();
+
+    while (sbol->codigo == CCOMA) {
+        scanner();
+
+        declaracion_parametro();
     }
 }
 
 void declaracion_parametro() {
 
-  especificador_tipo();
+    especificador_tipo();
 
-  if (sbol->codigo == CAMPER) scanner();
-
-  if (sbol->codigo == CIDENT) scanner();
-  else error_handler(16);
-
-  if (sbol->codigo == CCOR_ABR){
-
-      scanner();
-
-      if (sbol->codigo == CCOR_CIE) scanner();
-      else error_handler(21);
-  }
-}
-
-void lista_declaraciones_init(){
-
-  if (sbol->codigo == CIDENT) scanner();
-  else error_handler(16);
-  
-  declarador_init();
-
-  while (sbol->codigo == CCOMA) {
-    scanner();
+    if (sbol->codigo == CAMPER) scanner();
 
     if (sbol->codigo == CIDENT) scanner();
     else error_handler(16);
-  
+
+    if (sbol->codigo == CCOR_ABR) {
+
+        scanner();
+
+        if (sbol->codigo == CCOR_CIE) scanner();
+        else error_handler(21);
+    }
+}
+
+void lista_declaraciones_init() {
+
+    if (sbol->codigo == CIDENT) scanner();
+    else error_handler(16);
+
     declarador_init();
-  }
+
+    while (sbol->codigo == CCOMA) {
+        scanner();
+
+        if (sbol->codigo == CIDENT) scanner();
+        else error_handler(16);
+
+        declarador_init();
+    }
 
 }
 
+void declaracion_variable() {
 
-void declaracion_variable(){
+    declarador_init();
 
-  declarador_init();
+    if (sbol->codigo == CCOMA) {
+        scanner();
 
-  if (sbol->codigo == CCOMA){
-    scanner();
+        lista_declaraciones_init();
+    }
 
-    lista_declaraciones_init();
-  }
-
-  if (sbol->codigo == CPYCOMA) scanner();
-  else error_handler(22);
+    if (sbol->codigo == CPYCOMA) scanner();
+    else error_handler(22);
 
 }
 
+void declarador_init() {
 
-void declarador_init(){
+    switch (sbol->codigo) {
+        case CASIGNAC:
+        {
+            scanner();
+            constante();
+            break;
+        }
+        case CCOR_ABR:
+        {
+            scanner();
 
-  switch (sbol->codigo) {
-      case CASIGNAC:{
-               scanner();
-               constante();
-                break;
-      }
-      case CCOR_ABR:{
-              scanner();
+            if (sbol->codigo == CCONS_ENT)
+                constante();
 
-	      if (sbol->codigo == CCONS_ENT)
-		constante();
+            if (sbol->codigo == CCOR_CIE) scanner();
+            else error_handler(21);
 
-	      if (sbol->codigo == CCOR_CIE) scanner();
-	      else error_handler(21);
+            if (sbol->codigo == CASIGNAC) {
+                scanner();
 
-	      if (sbol->codigo == CASIGNAC){
-		scanner();
+                if (sbol->codigo == CLLA_ABR) scanner();
+                else error_handler(23);
 
-		if (sbol->codigo == CLLA_ABR) scanner();
-		else error_handler(23);
+                lista_inicializadores();
 
-		lista_inicializadores();
+                if (sbol->codigo == CLLA_CIE) scanner();
+                else error_handler(24);
 
-		if (sbol->codigo == CLLA_CIE) scanner();
-		else error_handler(24);
-		
-	      }
+            }
 
-	      break;
-      }
-  }
+            break;
+        }
+    }
 }
 
 void lista_inicializadores() {
 
-  constante();
-
-  while (sbol->codigo == CCOMA) {
-    scanner();
-
     constante();
-  }
+
+    while (sbol->codigo == CCOMA) {
+        scanner();
+
+        constante();
+    }
 
 }
 
+void proposicion_compuesta() {
 
-void proposicion_compuesta(){
+    if (sbol->codigo == CLLA_ABR) scanner();
+    else error_handler(23);
 
-  if (sbol->codigo == CLLA_ABR) scanner();
-  else error_handler(23);
+    if (sbol->codigo == CVOID || sbol->codigo == CCHAR ||
+            sbol->codigo == CINT || sbol->codigo == CFLOAT)
 
-  if (sbol->codigo == CVOID || sbol->codigo == CCHAR || 
-      sbol->codigo == CINT || sbol->codigo == CFLOAT) 
+        lista_declaraciones();
 
-    lista_declaraciones();
+    if (sbol->codigo == CLLA_ABR || sbol->codigo == CMAS ||
+            sbol->codigo == CMENOS || sbol->codigo == CIDENT ||
+            sbol->codigo == CPAR_ABR || sbol->codigo == CNEG ||
+            sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO ||
+            sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR ||
+            sbol->codigo == CIF || sbol->codigo == CWHILE ||
+            sbol->codigo == CIN || sbol->codigo == COUT ||
+            sbol->codigo == CPYCOMA || sbol->codigo == CRETURN)
 
-  if (sbol->codigo == CLLA_ABR || sbol->codigo == CMAS ||
-      sbol->codigo == CMENOS || sbol->codigo == CIDENT || 
-      sbol->codigo == CPAR_ABR || sbol->codigo == CNEG ||
-      sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO ||
-      sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR ||
-      sbol->codigo == CIF || sbol->codigo == CWHILE ||
-      sbol->codigo == CIN || sbol->codigo == COUT ||
-      sbol->codigo == CPYCOMA || sbol->codigo == CRETURN)
+        lista_proposiciones();
 
-    lista_proposiciones();
-
-  if (sbol->codigo == CLLA_CIE) scanner();
-  else error_handler(24);
+    if (sbol->codigo == CLLA_CIE) scanner();
+    else error_handler(24);
 
 }
+
 void lista_declaraciones() {
-  
-  declaracion();
-  
-  while (sbol->codigo == CVOID || sbol->codigo == CCHAR || 
-         sbol->codigo == CINT || sbol->codigo == CFLOAT) 
 
     declaracion();
- 
+
+    while (sbol->codigo == CVOID || sbol->codigo == CCHAR ||
+            sbol->codigo == CINT || sbol->codigo == CFLOAT)
+
+        declaracion();
+
 }
 
-void declaracion(){
+void declaracion() {
 
-  especificador_tipo();
+    especificador_tipo();
 
-  lista_declaraciones_init();
+    lista_declaraciones_init();
 
-  if (sbol->codigo == CPYCOMA) scanner();
-  else error_handler(22);
+    if (sbol->codigo == CPYCOMA) scanner();
+    else error_handler(22);
 
 }
 
 void lista_proposiciones() {
 
-  proposicion();
-
-  while (sbol->codigo == CLLA_ABR || sbol->codigo == CMAS ||
-	 sbol->codigo == CMENOS || sbol->codigo == CIDENT || 
-	 sbol->codigo == CPAR_ABR || sbol->codigo == CNEG ||
-	 sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO ||
-	 sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR ||
-	 sbol->codigo == CIF || sbol->codigo == CWHILE ||
-	 sbol->codigo == CIN || sbol->codigo == COUT ||
-	 sbol->codigo == CPYCOMA || sbol->codigo == CRETURN)
-
     proposicion();
+
+    while (sbol->codigo == CLLA_ABR || sbol->codigo == CMAS ||
+            sbol->codigo == CMENOS || sbol->codigo == CIDENT ||
+            sbol->codigo == CPAR_ABR || sbol->codigo == CNEG ||
+            sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO ||
+            sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR ||
+            sbol->codigo == CIF || sbol->codigo == CWHILE ||
+            sbol->codigo == CIN || sbol->codigo == COUT ||
+            sbol->codigo == CPYCOMA || sbol->codigo == CRETURN)
+
+        proposicion();
 
 }
 
-void proposicion(){
+void proposicion() {
 
-  switch (sbol->codigo) {
-  case CLLA_ABR: proposicion_compuesta(); break;
-  case CWHILE: proposicion_iteracion(); break;
-  case CIF: proposicion_seleccion(); break;
-  case CIN:
-  case COUT: proposicion_e_s(); break;
-  case CMAS:
-  case CMENOS:
-  case CIDENT: 
-  case CPAR_ABR:
-  case CNEG:
-  case CCONS_ENT:
-  case CCONS_FLO:
-  case CCONS_CAR:
-  case CCONS_STR:
-  case CPYCOMA:  proposicion_expresion(); break;
-  case CRETURN:  proposicion_retorno(); break;
-  default: error_handler(25);
-  }
+    switch (sbol->codigo) {
+        case CLLA_ABR: proposicion_compuesta();
+            break;
+        case CWHILE: proposicion_iteracion();
+            break;
+        case CIF: proposicion_seleccion();
+            break;
+        case CIN:
+        case COUT: proposicion_e_s();
+            break;
+        case CMAS:
+        case CMENOS:
+        case CIDENT:
+        case CPAR_ABR:
+        case CNEG:
+        case CCONS_ENT:
+        case CCONS_FLO:
+        case CCONS_CAR:
+        case CCONS_STR:
+        case CPYCOMA: proposicion_expresion();
+            break;
+        case CRETURN: proposicion_retorno();
+            checkreturn = 1;
+            break;
+        default: error_handler(25);
+    }
 }
 
 void proposicion_iteracion() {
 
-  if (sbol->codigo == CWHILE) scanner();
-  else error_handler(26);
+    if (sbol->codigo == CWHILE) scanner();
+    else error_handler(26);
 
-  if (sbol->codigo == CPAR_ABR) scanner();
-  else error_handler(19);
+    if (sbol->codigo == CPAR_ABR) scanner();
+    else error_handler(19);
 
-  expresion();
+    expresion();
 
-  if (sbol->codigo == CPAR_CIE) scanner();
-  else error_handler(20);
+    if (sbol->codigo == CPAR_CIE) scanner();
+    else error_handler(20);
 
-  proposicion();
+    proposicion();
 
 }
 
-
 void proposicion_seleccion() {
 
-  if (sbol->codigo == CIF) scanner();
-  else error_handler(27);
+    if (sbol->codigo == CIF) scanner();
+    else error_handler(27);
 
-  if (sbol->codigo == CPAR_ABR) scanner();
-  else error_handler(19);
+    if (sbol->codigo == CPAR_ABR) scanner();
+    else error_handler(19);
 
-  expresion();
+    expresion();
 
-  if (sbol->codigo == CPAR_CIE) scanner();
-  else error_handler(20);
+    if (sbol->codigo == CPAR_CIE) scanner();
+    else error_handler(20);
 
-  proposicion();
-
-  if (sbol->codigo == CELSE){
-    scanner();
-  
     proposicion();
-  }
-  
+
+    if (sbol->codigo == CELSE) {
+        scanner();
+
+        proposicion();
+    }
+
 }
 
 void proposicion_e_s() {
 
-  switch(sbol->codigo) {
-  case CIN: { scanner(); 
+    switch (sbol->codigo) {
+        case CIN:
+        {
+            scanner();
             if (sbol->codigo == CSHR) scanner();
             else error_handler(28);
             variable();
-	    while (sbol->codigo == CSHR) {
-               scanner();
-               variable();
+            while (sbol->codigo == CSHR) {
+                scanner();
+                variable();
             }
-	    if (sbol->codigo == CPYCOMA) scanner();
-	    else error_handler(22);
-	    break;
-  }
-  case COUT: {scanner();
-             if (sbol->codigo == CSHL) scanner();
-             else error_handler(29);
-             expresion();
-	     while (sbol->codigo == CSHL) {
-               scanner();
-               expresion();
-             }
-	     if (sbol->codigo == CPYCOMA) scanner();
-	     else error_handler(22);
-	     break;
-  }
-   default: error_handler(30); 
-   }
+            if (sbol->codigo == CPYCOMA) scanner();
+            else error_handler(22);
+            break;
+        }
+        case COUT:
+        {
+            scanner();
+            if (sbol->codigo == CSHL) scanner();
+            else error_handler(29);
+            expresion();
+            while (sbol->codigo == CSHL) {
+                scanner();
+                expresion();
+            }
+            if (sbol->codigo == CPYCOMA) scanner();
+            else error_handler(22);
+            break;
+        }
+        default: error_handler(30);
+    }
 }
-
 
 void proposicion_retorno() {
 
-  scanner();
-  expresion();
-  if (sbol->codigo == CPYCOMA) scanner();
-  else error_handler(22);
-
-}
-
-
-void proposicion_expresion(){
-
-  if (sbol->codigo == CMAS || sbol->codigo == CMENOS ||
-      sbol->codigo == CIDENT || 
-      sbol->codigo == CPAR_ABR || sbol->codigo == CNEG ||
-      sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO ||
-      sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR)
-
+    scanner();
     expresion();
+    if (sbol->codigo == CPYCOMA) scanner();
+    else error_handler(22);
 
-  if (sbol->codigo == CPYCOMA) scanner();
-  else error_handler(22);
 }
 
+void proposicion_expresion() {
+
+    if (sbol->codigo == CMAS || sbol->codigo == CMENOS ||
+            sbol->codigo == CIDENT ||
+            sbol->codigo == CPAR_ABR || sbol->codigo == CNEG ||
+            sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO ||
+            sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR)
+
+        expresion();
+
+    if (sbol->codigo == CPYCOMA) scanner();
+    else error_handler(22);
+}
 
 void expresion() {
-  
-  expresion_simple();
 
-  switch (sbol->codigo) {
-  case CASIGNAC:{
-               scanner();
-	       expresion();
-	       break;
-  }
-  case CDISTINTO:
-  case CIGUAL:
-  case CMENOR:
-  case CMEIG:
-  case CMAYOR:
-  case CMAIG: {
-              scanner();
-              expresion();
-	      break;
-  }
-  }
+    expresion_simple();
+
+    switch (sbol->codigo) {
+        case CASIGNAC:
+        {
+            scanner();
+            expresion();
+            break;
+        }
+        case CDISTINTO:
+        case CIGUAL:
+        case CMENOR:
+        case CMEIG:
+        case CMAYOR:
+        case CMAIG:
+        {
+            scanner();
+            expresion();
+            break;
+        }
+    }
 }
-
 
 void expresion_simple() {
 
-  if (sbol->codigo == CMAS || sbol->codigo == CMENOS) scanner();
+    if (sbol->codigo == CMAS || sbol->codigo == CMENOS) {
+        scanner();
+    }
 
-  termino();
-
-  while (sbol->codigo == CMAS || sbol->codigo == CMENOS || sbol->codigo == COR)
-  { 
-    scanner();
     termino();
-  }
+
+    while (sbol->codigo == CMAS || sbol->codigo == CMENOS || sbol->codigo == COR) {
+        scanner();
+        termino();
+    }
 
 }
 
 void termino() {
 
-  factor();
-
-  while (sbol->codigo == CMULT || sbol->codigo == CDIV || sbol->codigo == CAND)
-  { 
-    scanner();
     factor();
-  }
+
+    while (sbol->codigo == CMULT || sbol->codigo == CDIV || sbol->codigo == CAND) {
+        scanner();
+        factor();
+    }
 
 }
 
 void factor() {
 
-  switch (sbol->codigo){
-  case CIDENT: if (sbol->lexema[0]=='f') llamada_funcion();
-               else variable();
-  /************ Sacar ************/
-             break; 
-                 /* el alumno debera evaluar con consulta a TS 
-                  si bifurca a variable o llamada a funcion */
-  case CCONS_ENT:
-  case CCONS_FLO:
-  case CCONS_CAR: constante(); break;
-  case CCONS_STR: scanner(); break;
-  case CPAR_ABR: {
-                 scanner();
-		 expresion();
-		 if (sbol->codigo == CPAR_CIE) scanner();
-		 else error_handler(20);
-		 break;
-  }
-  case CNEG: {
-              scanner();
-	      expresion();
-	      break;
-  }
-  default: error_handler(31);
-  }  
+    switch (sbol->codigo) {
+        case CIDENT: {
+            char token_actual[TAM_LEXEMA];
+            strcpy(token_actual, sbol->lexema);
+            switch (Clase_Ident(token_actual)) {
+                case CLASFUNC: llamada_funcion();
+                    break;
+                case CLASPAR:
+                case CLASVAR: variable();
+                    break;
+                default:
+                    //Identificador no declarado
+                    error_handler(33);
+                    scanner();
+                    if (sbol->codigo == CCOR_ABR) { //es arreglo
+                        scanner();
+                        expresion();
+                        if (sbol->codigo == CCOR_CIE) {
+                            scanner();
+                        } else {
+                            error_handler(21);
+                        }
+                        insertarEnTSArregloError(token_actual);
+                        //doy de alta en tabla de simbolos
+                    } else if (sbol->codigo == CPAR_ABR) { //es funcion
+                        scanner();
+                        if (sbol->codigo == CMAS || sbol->codigo == CMENOS ||
+                                sbol->codigo == CIDENT ||
+                                sbol->codigo == CPAR_ABR || sbol->codigo == CNEG ||
+                                sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO ||
+                                sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR) {
+                            lista_expresiones();
+                        }
+                        if (sbol->codigo == CPAR_CIE) {
+                            scanner();
+                        } else {
+                            error_handler(20);
+                        }
+                        insertarEnTSFuncionError(token_actual);
+                        //doy de alta en tabla de simbolos
+                    } else { //es variable
+                        //doy de alta en tabla de simbolos
+                        insertarEnTSVariableError(token_actual);
+                    }
+                    break;
+            }
+        }
+        case CCONS_ENT:
+        case CCONS_FLO:
+        case CCONS_CAR: constante();
+            break;
+        case CCONS_STR: scanner();
+            break;
+        case CPAR_ABR:
+        {
+            scanner();
+            expresion();
+            if (sbol->codigo == CPAR_CIE) scanner();
+            else error_handler(20);
+            break;
+        }
+        case CNEG:
+        {
+            scanner();
+            expresion();
+            break;
+        }
+        default: error_handler(31);
+    }
 
 }
 
-void variable(){
+void variable() {
 
-  if (sbol->codigo == CIDENT) scanner();
-  else error_handler(16);
+    if (sbol->codigo == CIDENT) scanner();
+    else error_handler(16);
 
-  /* el alumno debera verificar con una consulta a TS 
-    si, siendo la variable un arreglo, corresponde o no 
-    verificar la presencia del subindice */
- if (sbol->codigo == CCOR_ABR){
-   scanner();
-   expresion();
-   if (sbol->codigo == CCOR_CIE) scanner();
-   else error_handler(21);
- }
+    /* el alumno debera verificar con una consulta a TS 
+      si, siendo la variable un arreglo, corresponde o no 
+      verificar la presencia del subindice */
+    if (sbol->codigo == CCOR_ABR) {
+        scanner();
+        expresion();
+        if (sbol->codigo == CCOR_CIE) scanner();
+        else error_handler(21);
+    }
 
 }
+
 void llamada_funcion() {
 
-  if (sbol->codigo == CIDENT) scanner();
-  else error_handler(16);
+    if (sbol->codigo == CIDENT) {
+        scanner();
+    } else {
+        error_handler(16);
+    }
 
-  if (sbol->codigo == CPAR_ABR) scanner();
-  else error_handler(19);
+    if (sbol->codigo == CPAR_ABR) {
+        scanner();
+    } else {
+        error_handler(19);
+    }
 
-  if (sbol->codigo == CMAS || sbol->codigo == CMENOS ||
-      sbol->codigo == CIDENT || 
-      sbol->codigo == CPAR_ABR || sbol->codigo == CNEG ||
-      sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO ||
-      sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR)
+    if (sbol->codigo == CMAS || sbol->codigo == CMENOS ||
+            sbol->codigo == CIDENT ||
+            sbol->codigo == CPAR_ABR || sbol->codigo == CNEG ||
+            sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO ||
+            sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR) {
+        lista_expresiones();
+    }
 
-    lista_expresiones();
-
-   if (sbol->codigo == CPAR_CIE) scanner();
-  else error_handler(20);
+    if (sbol->codigo == CPAR_CIE) {
+        scanner();
+    } else {
+        error_handler(20);
+    }
 
 }
 
 void lista_expresiones() {
 
-  expresion();
-
-  while (sbol->codigo == CCOMA) {
-    scanner();
-
     expresion();
-  }
+
+    while (sbol->codigo == CCOMA) {
+        scanner();
+
+        expresion();
+    }
 
 }
 
-void constante(){
+void constante() {
 
-  switch (sbol->codigo) {
-  case CCONS_ENT: scanner(); break;
-  case CCONS_FLO: scanner(); break;
-  case CCONS_CAR: scanner(); break;
-  default: scanner(); /*f_error(); aca va f_error, faltan los algoritmos de conversion a las constantes numericas. */ 
-  }
+    switch (sbol->codigo) {
+        case CCONS_ENT: scanner();
+            break;
+        case CCONS_FLO: scanner();
+            break;
+        case CCONS_CAR: scanner();
+            break;
+        default: scanner(); /*f_error(); aca va f_error, faltan los algoritmos de conversion a las constantes numericas. */
+    }
 
 }
-
 
 void existFuncionMain() {
-    
-    if (en_tabla("main") == NIL ) {
+
+    if (en_tabla("main") == NIL) {
         /*No existe función main*/
         error_handler(15);
         return;
-        
+
     }
-    
-    if (ts[en_tabla("main")].ets -> ptr_tipo == en_tabla("void")){
-         /* no de tipo vod*/
+
+    if (ts[en_tabla("main")].ets -> ptr_tipo == en_tabla("void")) {
+        /* no de tipo vod*/
         error_handler(35);
         return;
-    
+
     }
-    
-    if(Clase_Ident("main") != CLASFUNC) {
+
+    if (Clase_Ident("main") != CLASFUNC) {
         /* no es clase  funcion */
         error_handler(20);
-         return;
+        return;
     }
-    
+
     if (ts[en_tabla("main")].ets->desc.part_var.sub.cant_par > 0) {
         /* la funcion main no lleva parametros*/
         error_handler(36);
-         return;
+        return;
     }
-    
+
+}
+
+void insertarEnTSFuncionError(char lexema[]) {
+	strcpy(inf_id->nbre, lexema);
+	inf_id->clase = CLASFUNC;
+	inf_id->ptr_tipo = en_tabla("TIPOERROR");
+	insertarTS();
+}
+
+void insertarEnTSVariableError(char lexema[]) {
+	strcpy(inf_id->nbre, lexema);
+	inf_id->clase = CLASVAR;
+	inf_id->ptr_tipo = en_tabla("TIPOERROR");
+	insertarTS();
+}
+
+void insertarEnTSArregloError(char lexema[]) {
+	strcpy(inf_id->nbre, lexema);
+	inf_id->clase = CLASVAR;
+	inf_id->ptr_tipo = en_tabla("TIPOARREGLO");
+	inf_id->desc.part_var.arr.ptero_tipo_base = en_tabla("TIPOERROR");
+	insertarTS();
 }
