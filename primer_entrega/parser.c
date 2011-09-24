@@ -117,17 +117,18 @@ int main(int argc, char *argv[]) {
 
     nro_linea = 0;
 
-    if (argc != 2) {
+   if (argc != 3) {
+        printf("Argumentos: %d \n",argc );
         error_handler(6);
         error_handler(COD_IMP_ERRORES);
         exit(1);
-    } else {
-        if ((yyin = fopen(argv[1], "r")) == NULL) {
+    }
+    if (strcmp(argv[1],"-c")==0) {
+        if ((yyin = fopen(argv[2], "r" )) == NULL) {
             error_handler(7);
             error_handler(COD_IMP_ERRORES);
             exit(1);
         }
-    }
 
 
     sbol = &token1; /* la variable token */
@@ -144,6 +145,7 @@ int main(int argc, char *argv[]) {
     if (cant_errores_x_linea > 0) {
         error_handler(COD_IMP_ERRORES);
     }
+   }
 
 }
 
