@@ -87,6 +87,8 @@ int const_int = 0;
 float const_float = 0;
 char const_char[];
 
+int tipo_id = NIL;
+
 tipo_inf_res *ptr_inf_res;
 int *ptr_cant_params;
 
@@ -170,7 +172,6 @@ void declaraciones() {
  * @return el codigo del tipo del identificador 
  */
 long especificador_tipo() {
-    long tipo_id;
     checkreturn = 1;
     switch (sbol->codigo) {
         case CVOID:
@@ -194,7 +195,7 @@ long especificador_tipo() {
             inf_id -> ptr_tipo = en_tabla("error");
             error_handler(17);
     }
-    return tipo_id;
+    tipo_id = inf_id -> ptr_tipo;
 }
 
 void especificador_declaracion() {
@@ -215,6 +216,7 @@ void especificador_declaracion() {
 void definicion_funcion() {
     int check_return = checkreturn;
     if (sbol->codigo == CPAR_ABR) {
+        inf_id -> clase = CLASFUNC;
         scanner();
     } else error_handler(19);
 
@@ -323,6 +325,7 @@ void lista_declaraciones_init() {
         if (sbol->codigo == CIDENT) {
             strcpy(inf_id->nbre, sbol->lexema);
             inf_id->clase = CLASVAR;
+            inf_id->ptr_tipo = tipo_id;
             scanner();
         } else error_handler(16);
 
@@ -402,8 +405,13 @@ void lista_inicializadores() {
 
 void proposicion_compuesta() {
 
-    if (sbol->codigo == CLLA_ABR) scanner();
-    else error_handler(23);
+    if (sbol->codigo == CLLA_ABR) {
+        scanner();
+        pushTB();
+    }
+    else {
+        error_handler(23);
+    }
 
     if (sbol->codigo == CVOID || sbol->codigo == CCHAR ||
             sbol->codigo == CINT || sbol->codigo == CFLOAT)
@@ -423,6 +431,8 @@ void proposicion_compuesta() {
 
     if (sbol->codigo == CLLA_CIE) scanner();
     else error_handler(24);
+    
+    pop_nivel();
 
 }
 
@@ -694,6 +704,7 @@ void factor() {
                     break;
             }
         }
+        break;
         case CCONS_ENT:
         case CCONS_FLO:
         case CCONS_CAR: constante();
@@ -855,7 +866,7 @@ void insertarEnTSVariable() {
         inf_id->desc.part_var.arr.cant_elem = tam_arreglo;
 
     } else {
-        //inf_id->ptr_tipo = tipo_id;
+        inf_id->ptr_tipo = tipo_id;
         inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte;
     }
     insertarTS();

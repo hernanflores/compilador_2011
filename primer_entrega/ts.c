@@ -34,7 +34,7 @@ void inic_tablas();
 
 int insertarTS();
 int en_tabla(char *);
-int en_nivel_actual(char *);
+int c(char *);
 int Tipo_Ident(char *);
 int Clase_Ident(char *);
  
