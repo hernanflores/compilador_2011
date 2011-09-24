@@ -124,13 +124,13 @@ void inic_tablas()
   DIR_TIPO_FLOAT = insertarTS();
 
   // inicializo la entrada para el tipo estructurado ARREGLO
-  strcpy(inf_id->nbre, "TIPOARREGLO");
+  strcpy(inf_id->nbre, "array");
   inf_id->clase = CLASTYPE;
   inf_id->ptr_tipo = NIL;
   DIR_TIPO_ARREGLO = insertarTS();
  
   // inicializo la entrada para el tipo base erroneo TIPOERROR
-  strcpy(inf_id->nbre, "TIPOERROR");
+  strcpy(inf_id->nbre, "error");
   inf_id->clase = CLASTYPE;
   inf_id->ptr_tipo = NIL;
   DIR_TIPO_ERROR = insertarTS();

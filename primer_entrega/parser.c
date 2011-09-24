@@ -3,6 +3,7 @@
  *******************************************************************/
 
 #define EXTERNA extern
+#define EMPTY_STR ""
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +18,7 @@
 
 void unidad_traduccion();
 void declaraciones();
-void especificador_tipo();
+long especificador_tipo();
 void especificador_declaracion();
 void definicion_funcion();
 void declaracion_variable();
@@ -60,6 +61,7 @@ void insertarEnTSVariableError(char lexema[]);
 
 void insertarEnTSArregloError(char lexema[]);
 
+void insertarEnTSVariable();
 
 void scanner();
 
@@ -74,6 +76,19 @@ extern FILE *yyin;
 /**
  variable para verificar retornon de función*/
 int checkreturn;
+int got_return = 0;
+
+//almacena si el identificador corresponde a un arreglo
+int es_arreglo = 0;
+//almacena tam. variable arreglo
+int tam_arreglo = 0;
+
+int const_int = 0;
+float const_float = 0;
+char const_char[];
+
+tipo_inf_res *ptr_inf_res;
+int *ptr_cant_params;
 
 void scanner() {
     int i;
@@ -87,7 +102,6 @@ void scanner() {
     strcpy(linea, liberar);
     strcat(linea, token1.lexema);
     free((void *) liberar);
-
     /* El alumno debera dar una solucion al problema que las constantes
       enteras y flotantes son entregadas como strings al parser */
 }
@@ -141,26 +155,46 @@ void unidad_traduccion() {
 }
 
 void declaraciones() {
-
     especificador_tipo();
-    if (sbol->codigo == CIDENT) scanner();
-    else error_handler(16);
+    if (sbol->codigo == CIDENT) {
+        strcpy(inf_id->nbre, sbol->lexema);
+        scanner();
+    } else {
+        error_handler(16);
+    }
     especificador_declaracion();
 }
 
-void especificador_tipo() {
-
+/**
+ * 
+ * @return el codigo del tipo del identificador 
+ */
+long especificador_tipo() {
+    long tipo_id;
+    checkreturn = 1;
     switch (sbol->codigo) {
-        case CVOID: scanner();
+        case CVOID:
+            checkreturn = 0;
+            inf_id -> ptr_tipo = en_tabla("void");
+            scanner();
             break;
-        case CCHAR: scanner();
+        case CCHAR:
+            inf_id -> ptr_tipo = en_tabla("char");
+            scanner();
             break;
-        case CINT: scanner();
+        case CINT:
+            inf_id -> ptr_tipo = en_tabla("int");
+            scanner();
             break;
-        case CFLOAT: scanner();
+        case CFLOAT:
+            inf_id -> ptr_tipo = en_tabla("float");
+            scanner();
             break;
-        default: error_handler(17);
+        default:
+            inf_id -> ptr_tipo = en_tabla("error");
+            error_handler(17);
     }
+    return tipo_id;
 }
 
 void especificador_declaracion() {
@@ -179,29 +213,33 @@ void especificador_declaracion() {
 }
 
 void definicion_funcion() {
+    int check_return = checkreturn;
+    if (sbol->codigo == CPAR_ABR) {
+        scanner();
+    } else error_handler(19);
 
-    if (sbol->codigo == CPAR_ABR) scanner();
-    else error_handler(19);
-
-    if (sbol->codigo != CVOID) {
-        checkreturn = 0;
-    } else {
-        checkreturn = 1;
-    }
+    //Revisar esta inicializacion 
+    ptr_inf_res = &(inf_id ->desc.part_var.sub.ptr_inf_res);
+    ptr_cant_params = &(inf_id ->desc.part_var.sub.cant_par);
+    // ptr_inf_res = NULL; 
+    (*ptr_cant_params) = 0;
+    insertarTS();
+    pushTB(); //nueevo bloque de la funcion
 
     if (sbol->codigo == CVOID || sbol->codigo == CCHAR ||
-            sbol->codigo == CINT || sbol->codigo == CFLOAT)
+            sbol->codigo == CINT || sbol->codigo == CFLOAT) {
         lista_declaraciones_param();
-
+    }
     if (sbol->codigo == CPAR_CIE) scanner();
     else error_handler(20);
 
     proposicion_compuesta();
 
-    if (!checkreturn) {
+    if (check_return && !got_return) {
         error_handler(37);
     }
-
+    got_return = 0;
+    checkreturn = 0;
 }
 
 void lista_declaraciones_param() {
@@ -217,43 +255,88 @@ void lista_declaraciones_param() {
 
 void declaracion_parametro() {
 
-    especificador_tipo();
+    long tipo_param = especificador_tipo();
+    int es_referencia = 0;
+    int es_arreglo = 0;
 
-    if (sbol->codigo == CAMPER) scanner();
-
-    if (sbol->codigo == CIDENT) scanner();
-    else error_handler(16);
-
-    if (sbol->codigo == CCOR_ABR) {
-
-        scanner();
-
-        if (sbol->codigo == CCOR_CIE) scanner();
-        else error_handler(21);
+    if (ptr_inf_res == NULL) {
+        error_handler(10);
+        exit(1);
     }
+    if (sbol->codigo == CAMPER) {
+        ptr_inf_res -> tipo_pje = 'r';
+        scanner();
+    } else {
+        ptr_inf_res ->tipo_pje = 'v';
+    }
+
+    if (sbol->codigo == CAMPER) {
+        es_referencia = 1;
+        scanner();
+    }
+
+    if (sbol->codigo == CIDENT) {
+        strcpy(inf_id->nbre, sbol->lexema);
+        scanner();
+    } else error_handler(16);
+
+    inf_id->clase = CLASPAR;
+    ptr_inf_res->ptero_tipo = inf_id->ptr_tipo;
+    if (sbol->codigo == CCOR_ABR) {
+        //controla que no ocurra un parametro como &ident[]
+        if (ptr_inf_res->tipo_pje != 'r') {
+            scanner();
+            if (sbol->codigo == CCOR_CIE) {
+                scanner();
+            } else {
+                error_handler(21);
+            }
+            inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
+            inf_id->ptr_tipo = en_tabla("TIPOARREGLO");
+            inf_id->desc.part_var.arr.cant_elem = 0;
+        } else {
+            //printf("no se permite pasaje por referncia de un arreglo");
+            error_handler(42);
+        }
+    }
+    //ptr_inf_res= &ptr_inf_res->ptr_sig; 
+    ptr_inf_res = ptr_inf_res->ptr_sig;
+    (*ptr_cant_params)++;
+    ptr_inf_res = NULL;
+    insertarTS();
 }
 
 void lista_declaraciones_init() {
 
-    if (sbol->codigo == CIDENT) scanner();
-    else error_handler(16);
+    if (sbol->codigo == CIDENT) {
+        strcpy(inf_id->nbre, sbol->lexema);
+        inf_id->clase = CLASVAR;
+        scanner();
+    } else error_handler(16);
 
     declarador_init();
+    insertarEnTSVariable();
 
     while (sbol->codigo == CCOMA) {
         scanner();
 
-        if (sbol->codigo == CIDENT) scanner();
-        else error_handler(16);
+        if (sbol->codigo == CIDENT) {
+            strcpy(inf_id->nbre, sbol->lexema);
+            inf_id->clase = CLASVAR;
+            scanner();
+        } else error_handler(16);
 
         declarador_init();
+        insertarEnTSVariable();
     }
 
 }
 
 void declaracion_variable() {
 
+
     declarador_init();
+    insertarEnTSVariable();
 
     if (sbol->codigo == CCOMA) {
         scanner();
@@ -267,7 +350,7 @@ void declaracion_variable() {
 }
 
 void declarador_init() {
-
+    es_arreglo = 0;
     switch (sbol->codigo) {
         case CASIGNAC:
         {
@@ -278,12 +361,14 @@ void declarador_init() {
         case CCOR_ABR:
         {
             scanner();
-
-            if (sbol->codigo == CCONS_ENT)
+            es_arreglo = 1;
+            if (sbol->codigo == CCONS_ENT) {
                 constante();
-
-            if (sbol->codigo == CCOR_CIE) scanner();
-            else error_handler(21);
+            }
+            if (sbol->codigo == CCOR_CIE) {
+                scanner();
+                tam_arreglo = const_int;
+            } else error_handler(21);
 
             if (sbol->codigo == CASIGNAC) {
                 scanner();
@@ -404,7 +489,7 @@ void proposicion() {
         case CPYCOMA: proposicion_expresion();
             break;
         case CRETURN: proposicion_retorno();
-            checkreturn = 1;
+            got_return = 1;
             break;
         default: error_handler(25);
     }
@@ -562,7 +647,8 @@ void termino() {
 void factor() {
 
     switch (sbol->codigo) {
-        case CIDENT: {
+        case CIDENT:
+        {
             char token_actual[TAM_LEXEMA];
             strcpy(token_actual, sbol->lexema);
             switch (Clase_Ident(token_actual)) {
@@ -695,11 +781,17 @@ void lista_expresiones() {
 void constante() {
 
     switch (sbol->codigo) {
-        case CCONS_ENT: scanner();
+        case CCONS_ENT:
+            const_int = atoi(sbol->lexema);
+            scanner();
             break;
-        case CCONS_FLO: scanner();
+        case CCONS_FLO:
+            const_float = atof(sbol->lexema);
+            scanner();
             break;
-        case CCONS_CAR: scanner();
+        case CCONS_CAR:
+            strcpy(const_char, sbol->lexema);
+            scanner();
             break;
         default: scanner(); /*f_error(); aca va f_error, faltan los algoritmos de conversion a las constantes numericas. */
     }
@@ -711,49 +803,60 @@ void existFuncionMain() {
     if (en_tabla("main") == NIL) {
         /*No existe función main*/
         error_handler(15);
-        return;
-
     }
 
-    if (ts[en_tabla("main")].ets -> ptr_tipo == en_tabla("void")) {
+    if (ts[en_tabla("main")].ets -> ptr_tipo != en_tabla("void")) {
         /* no de tipo vod*/
         error_handler(35);
-        return;
-
     }
 
     if (Clase_Ident("main") != CLASFUNC) {
         /* no es clase  funcion */
-        error_handler(20);
-        return;
+        error_handler(34);
     }
 
     if (ts[en_tabla("main")].ets->desc.part_var.sub.cant_par > 0) {
         /* la funcion main no lleva parametros*/
         error_handler(36);
-        return;
     }
 
 }
 
 void insertarEnTSFuncionError(char lexema[]) {
-	strcpy(inf_id->nbre, lexema);
-	inf_id->clase = CLASFUNC;
-	inf_id->ptr_tipo = en_tabla("TIPOERROR");
-	insertarTS();
+    strcpy(inf_id->nbre, lexema);
+    inf_id->clase = CLASFUNC;
+    inf_id->ptr_tipo = en_tabla("TIPOERROR");
+    insertarTS();
 }
 
 void insertarEnTSVariableError(char lexema[]) {
-	strcpy(inf_id->nbre, lexema);
-	inf_id->clase = CLASVAR;
-	inf_id->ptr_tipo = en_tabla("TIPOERROR");
-	insertarTS();
+    strcpy(inf_id->nbre, lexema);
+    inf_id->clase = CLASVAR;
+    inf_id->ptr_tipo = en_tabla("TIPOERROR");
+    insertarTS();
 }
 
 void insertarEnTSArregloError(char lexema[]) {
-	strcpy(inf_id->nbre, lexema);
-	inf_id->clase = CLASVAR;
-	inf_id->ptr_tipo = en_tabla("TIPOARREGLO");
-	inf_id->desc.part_var.arr.ptero_tipo_base = en_tabla("TIPOERROR");
-	insertarTS();
+    strcpy(inf_id->nbre, lexema);
+    inf_id->clase = CLASVAR;
+    inf_id->ptr_tipo = en_tabla("TIPOARREGLO");
+    inf_id->desc.part_var.arr.ptero_tipo_base = en_tabla("TIPOERROR");
+    insertarTS();
+}
+
+void insertarEnTSVariable() {
+
+
+    inf_id->clase = CLASVAR;
+    if (es_arreglo) {
+        //inf_id->ptr_tipo = en_tabla("TIPO_ARREGLO");
+        inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte * tam_arreglo;
+        inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
+        inf_id->desc.part_var.arr.cant_elem = tam_arreglo;
+
+    } else {
+        //inf_id->ptr_tipo = tipo_id;
+        inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte;
+    }
+    insertarTS();
 }
