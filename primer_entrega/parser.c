@@ -275,10 +275,11 @@ void lista_declaraciones_param() {
 
 void declaracion_parametro() {
 
-	long tipo_param = especificador_tipo();
+	especificador_tipo();
 	int es_referencia = 0;
-	int es_arreglo = 0;
+	//int es_arreglo = 0;
 
+        ptr_inf_res = (tipo_inf_res *)calloc(1, sizeof(tipo_inf_res));
 	if (ptr_inf_res == NULL) {
 		error_handler(10);
 		exit(1);
