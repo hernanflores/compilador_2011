@@ -256,7 +256,7 @@ void definicion_funcion() {
            check_return = 0;
        }
 	if (check_return && !got_return) {
-		error_handler(37);
+		error_print(37);
 	}
 	got_return = 0;
 	checkreturn = 0;
@@ -430,7 +430,7 @@ void lista_inicializadores() {
 
 void proposicion_compuesta() {
 
-	if (pushie_func) {
+	if (!pushie_func) {
 		pushTB();
 	} else {
 		pushie_func = 0;
@@ -948,6 +948,8 @@ void insertarEnTSArregloError(char lexema[]) {
 }
 
 void insertarEnTSVariable() {
+    
+    if (strcmp(inf_id->nbre, EMPTY_STR) != 0) {
 
 	inf_id->clase = CLASVAR;
 	if (es_arreglo) {
@@ -961,4 +963,5 @@ void insertarEnTSVariable() {
 		inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte;
 	}
 	insertarTS();
+    }
 }
