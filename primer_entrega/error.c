@@ -6,7 +6,7 @@
 
 
 void error_print (int ne) {
-  
+
   switch (ne) {
     /* errores de scanner */
   case 1:  printf("\t Error %d: Fin de comentario no encontrado\n", ne); break;
@@ -52,6 +52,7 @@ void error_print (int ne) {
   case 39: printf("\t Error %d: El identificador debe ser una variable o parámetro\n", ne); break;
   case 40: printf("\t Error %d: En una expresion, los arreglos deben ser accedidos por sus elementos\n", ne); break;
   case 41: printf("\t Error %d: Fin de archivo no valido\n", ne); break;
+  case 42: printf("\t Error %d: Var. declarada como tipo arreglo. Falta [\n", ne); break;
 
  }
 }
@@ -62,7 +63,7 @@ void error_handler(int ne) {
 
   if (ne == COD_IMP_ERRORES) {
     printf("Linea %d - %s\n", nro_linea, linea);
-    for (i=0; i < cant_errores_x_linea; i++) 
+    for (i=0; i < cant_errores_x_linea; i++)
       error_print( errores_x_linea [i]);
     cant_errores_x_linea=0;
   }
