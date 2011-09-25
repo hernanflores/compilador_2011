@@ -91,6 +91,9 @@ int pushie_func = 0;
 tipo_inf_res *ptr_inf_res;
 int *ptr_cant_params;
 
+//chequeo por nombre de funcion main
+char nbre_func[];
+
 void scanner() {
 	int i;
 
@@ -163,6 +166,7 @@ void declaraciones() {
 	especificador_tipo();
 	if (sbol->codigo == CIDENT) {
 		strcpy(inf_id->nbre, sbol->lexema);
+                strcpy(nbre_func, sbol->lexema);
 		scanner();
 	} else {
 		error_handler(16);
@@ -221,6 +225,7 @@ void especificador_declaracion() {
 
 void definicion_funcion() {
 	int check_return = checkreturn;
+        
 	if (sbol->codigo == CPAR_ABR) {
 		inf_id->clase = CLASFUNC;
 		scanner();
@@ -244,9 +249,12 @@ void definicion_funcion() {
 		scanner();
 	else
 		error_handler(20);
+   
+       proposicion_compuesta();
 
-	proposicion_compuesta();
-
+       if (strcmp("main", nbre_func)== 0){
+           check_return = 0;
+       }
 	if (check_return && !got_return) {
 		error_handler(37);
 	}
@@ -897,6 +905,7 @@ void existFuncionMain() {
 	if (en_tabla("main") == NIL) {
 		/*No existe función main*/
 		error_handler(15);
+                return;
 	}
 
 	if (ts[en_tabla("main")].ets->ptr_tipo != en_tabla("void")) {
