@@ -53,7 +53,7 @@ void error_print (int ne) {
   case 40: printf("\t Error %d: En una expresion, los arreglos deben ser accedidos por sus elementos\n", ne); break;
   case 41: printf("\t Error %d: Fin de archivo no valido\n", ne); break;
   case 42: printf("\t Error %d: Var. declarada como tipo arreglo. Falta [\n", ne); break;
-
+  case 43: printf("\t Error %d: Pasaje de parametro tipo arreglo. No se permiten []\n", ne); break;
  }
 }
 

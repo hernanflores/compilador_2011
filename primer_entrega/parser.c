@@ -83,8 +83,11 @@ int const_int = 0;
 float const_float = 0;
 char const_char[];
 
+int es_parametro = 0;
 int tipo_id = NIL;
 
+//revisa si ya hice push de nivel
+int pushie_func = 0;
 tipo_inf_res *ptr_inf_res;
 int *ptr_cant_params;
 
@@ -231,6 +234,7 @@ void definicion_funcion() {
 	(*ptr_cant_params) = 0;
 	insertarTS();
 	pushTB(); //nueevo bloque de la funcion
+	pushie_func = 1;
 
 	if (sbol->codigo == CVOID || sbol->codigo == CCHAR || sbol->codigo == CINT
 			|| sbol->codigo == CFLOAT) {
@@ -301,7 +305,7 @@ void declaracion_parametro() {
 				error_handler(21);
 			}
 			inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
-			inf_id->ptr_tipo = en_tabla("TIPOARREGLO");
+			inf_id->ptr_tipo = en_tabla("array");
 			inf_id->desc.part_var.arr.cant_elem = 0;
 		} else {
 			//printf("no se permite pasaje por referncia de un arreglo");
@@ -418,9 +422,13 @@ void lista_inicializadores() {
 
 void proposicion_compuesta() {
 
+	if (pushie_func) {
+		pushTB();
+	} else {
+		pushie_func = 0;
+	}
 	if (sbol->codigo == CLLA_ABR) {
 		scanner();
-		pushTB();
 	} else {
 		error_handler(23);
 	}
@@ -789,19 +797,29 @@ void variable() {
 	/* el alumno debera verificar con una consulta a TS
 	 si, siendo la variable un arreglo, corresponde o no
 	 verificar la presencia del subindice */
-	if (sbol->codigo == CCOR_ABR) {
-		if (ts[en_tabla(ident_actual)].ets->ptr_tipo != en_tabla("array")) {
-			error_handler(32);
-		}
-		scanner();
-		expresion();
-		if (sbol->codigo == CCOR_CIE)
+	if (ts[en_tabla(ident_actual)].ets->ptr_tipo == en_tabla("array")) {
+		if (sbol->codigo == CCOR_ABR) {
+			if (es_parametro) {
+				error_handler(43);
+			}
 			scanner();
-		else
-			error_handler(21);
+			expresion();
+			if (sbol->codigo == CCOR_CIE)
+				scanner();
+			else
+				error_handler(21);
+		} else {
+			if (!es_parametro) {
+				error_handler(42);
+			}
+		}
 	} else {
-		if (ts[en_tabla(ident_actual)].ets->ptr_tipo == en_tabla("array")) {
-			error_handler(42);
+		if (sbol->codigo == CCOR_ABR) {
+			scanner();
+			error_handler(32);
+			expresion();
+			if (sbol->codigo == CCOR_CIE)
+				scanner();
 		}
 	}
 
@@ -837,7 +855,7 @@ void llamada_funcion() {
 }
 
 void lista_expresiones() {
-
+	es_parametro = 1;
 	expresion();
 
 	while (sbol->codigo == CCOMA) {
@@ -845,7 +863,7 @@ void lista_expresiones() {
 
 		expresion();
 	}
-
+	es_parametro = 0;
 }
 
 void constante() {
@@ -901,22 +919,22 @@ void existFuncionMain() {
 void insertarEnTSFuncionError(char lexema[]) {
 	strcpy(inf_id->nbre, lexema);
 	inf_id->clase = CLASFUNC;
-	inf_id->ptr_tipo = en_tabla("TIPOERROR");
+	inf_id->ptr_tipo = en_tabla("error");
 	insertarTS();
 }
 
 void insertarEnTSVariableError(char lexema[]) {
 	strcpy(inf_id->nbre, lexema);
 	inf_id->clase = CLASVAR;
-	inf_id->ptr_tipo = en_tabla("TIPOERROR");
+	inf_id->ptr_tipo = en_tabla("error");
 	insertarTS();
 }
 
 void insertarEnTSArregloError(char lexema[]) {
 	strcpy(inf_id->nbre, lexema);
 	inf_id->clase = CLASVAR;
-	inf_id->ptr_tipo = en_tabla("TIPOARREGLO");
-	inf_id->desc.part_var.arr.ptero_tipo_base = en_tabla("TIPOERROR");
+	inf_id->ptr_tipo = en_tabla("array");
+	inf_id->desc.part_var.arr.ptero_tipo_base = en_tabla("error");
 	insertarTS();
 }
 
@@ -924,7 +942,7 @@ void insertarEnTSVariable() {
 
 	inf_id->clase = CLASVAR;
 	if (es_arreglo) {
-		//inf_id->ptr_tipo = en_tabla("TIPO_ARREGLO");
+		inf_id->ptr_tipo = en_tabla("array");
 		inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte * tam_arreglo;
 		inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
 		inf_id->desc.part_var.arr.cant_elem = tam_arreglo;
