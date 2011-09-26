@@ -808,7 +808,7 @@ void variable() {
 	 verificar la presencia del subindice */
 	if (ts[en_tabla(ident_actual)].ets->ptr_tipo == en_tabla("array")) {
 		if (sbol->codigo == CCOR_ABR) {
-			if (es_parametro) {
+			if (es_parametro && (sbol->codigo == CCOMA || sbol->codigo == CPAR_CIE)) {
 				error_handler(43);
 			}
 			scanner();
