@@ -146,9 +146,9 @@ int main(int argc, char *argv[]) {
 		/*Chequemos funcion main*/
 		existFuncionMain();
 		/*Chequemos que no haya errores, sino imprimos errores*/
-		if (cant_errores_x_linea > 0) {
+		/*/if (cant_errores_x_linea > 0) {
 			error_handler(COD_IMP_ERRORES);
-		}
+		}*/
 	}
 
 }
@@ -905,23 +905,23 @@ void existFuncionMain() {
 
 	if (en_tabla("main") == NIL) {
 		/*No existe función main*/
-		error_handler(15);
+		error_print(15);
                 return;
 	}
 
 	if (ts[en_tabla("main")].ets->ptr_tipo != en_tabla("void")) {
 		/* no de tipo vod*/
-		error_handler(35);
+		error_print(35);
 	}
 
 	if (Clase_Ident("main") != CLASFUNC) {
 		/* no es clase  funcion */
-		error_handler(34);
+		error_print(34);
 	}
 
 	if (ts[en_tabla("main")].ets->desc.part_var.sub.cant_par > 0) {
 		/* la funcion main no lleva parametros*/
-		error_handler(36);
+		error_print(36);
 	}
 
 }
