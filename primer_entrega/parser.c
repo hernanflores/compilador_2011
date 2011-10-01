@@ -146,9 +146,9 @@ int main(int argc, char *argv[]) {
 		/*Chequemos funcion main*/
 		existFuncionMain();
 		/*Chequemos que no haya errores, sino imprimos errores*/
-		/*/if (cant_errores_x_linea > 0) {
-			error_handler(COD_IMP_ERRORES);
-		}*/
+		if (cant_errores_x_linea > 0) {
+			print();
+		}
 	}
 
 }
@@ -256,7 +256,8 @@ void definicion_funcion() {
            check_return = 0;
        }
 	if (check_return && !got_return) {
-		error_print(37);
+		error_handler(37);
+                print();
 	}
 	got_return = 0;
 	checkreturn = 0;

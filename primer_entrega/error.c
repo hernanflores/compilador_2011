@@ -59,18 +59,23 @@ void error_print (int ne) {
 
 
 void error_handler(int ne) {
-  int i;
-
+  
   if (ne == COD_IMP_ERRORES) {
     printf("Linea %d - %s\n", nro_linea, linea);
-    for (i=0; i < cant_errores_x_linea; i++)
-      error_print( errores_x_linea [i]);
-    cant_errores_x_linea=0;
+    print();
   }
   else {
     errores_x_linea [cant_errores_x_linea] = ne;
     cant_errores_x_linea++;
   }
+  
+}
+
+void print() {
+    int i;
+    for (i=0; i < cant_errores_x_linea; i++)
+      error_print( errores_x_linea [i]);
+    cant_errores_x_linea=0;
 }
 
 
