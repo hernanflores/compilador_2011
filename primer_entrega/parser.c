@@ -389,7 +389,9 @@ void declarador_init() {
 		es_arreglo = 1;
 		if (sbol->codigo == CCONS_ENT) {
 			constante();
-		}
+		} else {
+                    error_handler(38);
+                }
 		if (sbol->codigo == CCOR_CIE) {
 			scanner();
 			tam_arreglo = const_int;
@@ -896,7 +898,7 @@ void constante() {
 		scanner();
 		break;
 	default:
-		scanner();
+		//scanner();
 		break;/*f_error(); aca va f_error, faltan los algoritmos de conversion a las constantes numericas. */
 	}
 
