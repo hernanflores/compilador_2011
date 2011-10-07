@@ -12,41 +12,43 @@
 #include "var_globales.h"
 #include "ts.h"
 #include "error.h"
+#include "set.h"
 
 /*********** prototipos *************/
 
-void unidad_traduccion();
-void declaraciones();
-long especificador_tipo();
-void especificador_declaracion();
-void definicion_funcion();
-void declaracion_variable();
-void lista_declaraciones_param();
-void declaracion_parametro();
-void declarador_init();
-void lista_declacion_init();
-void constante();
-void lista_inicializadores();
-void lista_proposiciones();
-void lista_declaraciones();
-void declaracion();
-void proposicion();
-void proposicion_expresion();
-void proposicion_compuesta();
-void proposicion_seleccion();
-void proposicion_iteracion();
-void proposicion_e_s();
-void proposicion_retorno();
-void variable();
-void expresion();
-void expresion_asignacion();
-void expresion_relacional();
-void expresion_simple();
-void relacion();
-void termino();
-void factor();
-void llamada_funcion();
-void lista_expresiones();
+void unidad_traduccion(set folset);
+void declaraciones(set folset);
+long especificador_tipo(set folset);
+void especificador_declaracion(set folset);
+void definicion_funcion(set folset);
+void declaracion_variable(set folset);
+void lista_declaraciones_param(set folset);
+void declaracion_parametro(set folset);
+void declarador_init(set folset);
+void lista_declacion_init(set folset);
+void constante(set folset);
+void lista_inicializadores(set folset);
+void lista_proposiciones(set folset);
+void lista_declaraciones(set folset);
+void declaracion(set folset);
+void proposicion(set folset);
+void proposicion_expresion(set folset);
+void proposicion_compuesta(set folset);
+void proposicion_seleccion(set folset);
+void proposicion_iteracion(set folset);
+void proposicion_e_s(set folset);
+void proposicion_retorno(set folset);
+void variable(set folset);
+void expresion(set folset);
+void expresion_asignacion(set folset);
+void expresion_relacional(set folset);
+void expresion_simple(set folset);
+void relacion(set folset);
+void termino(set folset);
+void factor(set folset);
+void llamada_funcion(set folset);
+void lista_expresiones(set folset);
+void inic_set();
 
 /* Funciones agregadas */
 /*Chequea si existe la funcion main, el tipo de
@@ -62,6 +64,8 @@ void insertarEnTSArregloError(char lexema[]);
 void insertarEnTSVariable();
 
 void scanner();
+
+void test(set c1, set c2, int ne);
 
 /********** variables globales ************/
 
@@ -83,6 +87,8 @@ int const_int = 0;
 float const_float = 0;
 char const_char[];
 
+set first[60];
+
 int es_parametro = 0;
 int tipo_id = NIL;
 
@@ -93,6 +99,61 @@ int *ptr_cant_params;
 
 //chequeo por nombre de funcion main
 char nbre_func[];
+
+/**
+ * 
+ */
+
+void inic_set(){
+
+     first[UNIDAD_TRADUCCION] = cons(CVOID|CCHAR|CINT|CFLOAT|CEOF);
+     first[DECLARACIONES]   = cons(CVOID|CCHAR|CINT|CFLOAT|NADA);
+     first[ESPECIFICADOR_TIPO]   = cons(CVOID|CCHAR|CINT|CFLOAT|NADA);
+     first[ESPECIFICADOR_DECLARACION]   = cons(CCOR_ABR|CCOMA|CPYCOMA|CASIGNAC|CPAR_ABR|NADA);
+     first[DEFINICION_FUNCION]   = cons(CPAR_ABR,NADA);
+     first[DECLARACION_VARIABLE]   = cons(CCOR_ABR|CCOMA|CPYCOMA|CASIGNAC|NADA);
+     first[LISTA_DECLARACIONES_PARAM]   = first[ESPECIFICADOR_TIPO];
+     first[DECLARACION_PARAMETRO]   = first[ESPECIFICADOR_TIPO];
+     first[DECLARADOR_INIT]   = first[DECLARACION_VARIABLE];
+     first[CONSTANTE]   = cons(NADA|CCONS_ENT|CCONS_FLO|CCONS_CAR);
+     first[LISTA_DECLARACIONES_INIT]   =  cons(NADA|CIDENT);
+     first[LISTA_INICIALIZADORES]   = first[CONSTANTE];
+     first[LISTA_DECLARACIONES]   = first[ESPECIFICADOR_TIPO];
+     first[DECLARACION]   = first[ESPECIFICADOR_TIPO];
+     first[PROPOSICION_COMPUESTA]   = cons(CLLA_ABR|NADA);
+     first[PROPOSICION_SELECCION]   = cons(CIF|NADA);
+     first[PROPOSICION_ITERACION]   = cons(CWHILE|NADA);
+     first[PROPOSICION_E_S]   = cons(CIN|COUT|NADA);
+     first[PROPOSICION_RETORNO]   = cons(NADA|CRETURN);
+     first[VARIABLE]   = cons(NADA|CIDENT);
+     first[RELACION]   = cons(NADA|CDISTINTO|CIGUAL|CMENOR|CMEIG|CMAYOR|CMAIG);
+     first[FACTOR]   = une(cons(CPAR_ABR|CNEG|CIDENT|CCONS_STR),first[CONSTANTE]);
+     first[LLAMADA_FUNCION]   = cons(NADA|CIDENT);
+     first[TERMINO]   = first[FACTOR];
+     first[EXPRESION_SIMPLE]   = une(cons(NADA|CMAS|CMENOS),first[TERMINO]);
+     first[EXPRESION]   = first[EXPRESION_SIMPLE];
+     first[PROPOSICION_EXPRESION]   = une(cons(CPYCOMA|NADA),first[EXPRESION]);
+     first[PROPOSICION]   =  (first[PROPOSICION_EXPRESION]|
+                             first[PROPOSICION_COMPUESTA]|
+                             first[PROPOSICION_SELECCION]|
+                             first[PROPOSICION_ITERACION]|
+                             first[PROPOSICION_E_S]|
+                             first[PROPOSICION_RETORNO]);
+     first[LISTA_PROPOSICIONES]   = first[PROPOSICION];
+     first[LISTA_EXPRESIONES]   = first[EXPRESION];
+
+}
+
+void test(set c1, set c2, int ne){
+      if ( !in(sbol->codigo,c1)){
+          error_handler(ne);
+          c1 = une(c1, c2);
+          while ( !in(sbol->codigo,c1)) {
+               scanner();
+          }
+      }
+
+}
 
 void scanner() {
 	int i;
@@ -137,6 +198,8 @@ int main(int argc, char *argv[]) {
 		sbol = &token1; /* la variable token */
 
 		inic_tablas();
+                
+                inic_set();
 
 		scanner();
 		unidad_traduccion();
@@ -155,15 +218,15 @@ int main(int argc, char *argv[]) {
 
 /********* funciones del parser ***********/
 
-void unidad_traduccion() {
+void unidad_traduccion(set folset) {
 
 	while (sbol->codigo == CVOID || sbol->codigo == CCHAR
 			|| sbol->codigo == CINT || sbol->codigo == CFLOAT)
-		declaraciones();
+                declaraciones(une(folset,first[DECLARACIONES]));
 }
 
-void declaraciones() {
-	especificador_tipo();
+void declaraciones(set folset) {
+	especificador_tipo(une(folset,une(CIDENT,first[ESPECIFICADOR_DECLARACION])));
 	if (sbol->codigo == CIDENT) {
 		strcpy(inf_id->nbre, sbol->lexema);
                 strcpy(nbre_func, sbol->lexema);
@@ -171,14 +234,14 @@ void declaraciones() {
 	} else {
 		error_handler(16);
 	}
-	especificador_declaracion();
+	especificador_declaracion(folset);
 }
 
 /**
  * 
  * @return el codigo del tipo del identificador 
  */
-long especificador_tipo() {
+long especificador_tipo(set folset) {
 	checkreturn = 1;
 	switch (sbol->codigo) {
 	case CVOID:
@@ -205,7 +268,7 @@ long especificador_tipo() {
 	tipo_id = inf_id->ptr_tipo;
 }
 
-void especificador_declaracion() {
+void especificador_declaracion(set folset) {
 
 	switch (sbol->codigo) {
 	case CPAR_ABR:
@@ -223,7 +286,7 @@ void especificador_declaracion() {
 
 }
 
-void definicion_funcion() {
+void definicion_funcion(set folset) {
 	int check_return = checkreturn;
         
 	if (sbol->codigo == CPAR_ABR) {
@@ -263,7 +326,7 @@ void definicion_funcion() {
 	checkreturn = 0;
 }
 
-void lista_declaraciones_param() {
+void lista_declaraciones_param(set folset) {
 
 	declaracion_parametro();
 
@@ -274,7 +337,7 @@ void lista_declaraciones_param() {
 	}
 }
 
-void declaracion_parametro() {
+void declaracion_parametro(set folset) {
 
 	especificador_tipo();
 	int es_referencia = 0;
@@ -329,7 +392,7 @@ void declaracion_parametro() {
 	insertarTS();
 }
 
-void lista_declaraciones_init() {
+void lista_declaraciones_init(set folset) {
 
 	if (sbol->codigo == CIDENT) {
 		strcpy(inf_id->nbre, sbol->lexema);
@@ -358,7 +421,7 @@ void lista_declaraciones_init() {
 
 }
 
-void declaracion_variable() {
+void declaracion_variable(set folset) {
 
 	declarador_init();
 	insertarEnTSVariable();
@@ -376,7 +439,7 @@ void declaracion_variable() {
 
 }
 
-void declarador_init() {
+void declarador_init(set folset) {
 	es_arreglo = 0;
 	switch (sbol->codigo) {
 	case CASIGNAC: {
@@ -420,7 +483,7 @@ void declarador_init() {
 	}
 }
 
-void lista_inicializadores() {
+void lista_inicializadores(set folset) {
 
 	constante();
 
@@ -432,7 +495,7 @@ void lista_inicializadores() {
 
 }
 
-void proposicion_compuesta() {
+void proposicion_compuesta(set folset) {
 
 	if (!pushie_func) {
 		pushTB();
@@ -470,7 +533,7 @@ void proposicion_compuesta() {
 
 }
 
-void lista_declaraciones() {
+void lista_declaraciones(set folset) {
 
 	declaracion();
 
@@ -481,7 +544,7 @@ void lista_declaraciones() {
 
 }
 
-void declaracion() {
+void declaracion(set folset) {
 
 	especificador_tipo();
 
@@ -494,7 +557,7 @@ void declaracion() {
 
 }
 
-void lista_proposiciones() {
+void lista_proposiciones(set folset) {
 
 	proposicion();
 
@@ -511,7 +574,7 @@ void lista_proposiciones() {
 
 }
 
-void proposicion() {
+void proposicion(set folset) {
 
 	switch (sbol->codigo) {
 	case CLLA_ABR:
@@ -548,7 +611,7 @@ void proposicion() {
 	}
 }
 
-void proposicion_iteracion() {
+void proposicion_iteracion(set folset) {
 
 	if (sbol->codigo == CWHILE)
 		scanner();
@@ -571,7 +634,7 @@ void proposicion_iteracion() {
 
 }
 
-void proposicion_seleccion() {
+void proposicion_seleccion(set folset) {
 
 	if (sbol->codigo == CIF)
 		scanner();
@@ -600,7 +663,7 @@ void proposicion_seleccion() {
 
 }
 
-void proposicion_e_s() {
+void proposicion_e_s(set folset) {
 
 	switch (sbol->codigo) {
 	case CIN: {
@@ -642,7 +705,7 @@ void proposicion_e_s() {
 	}
 }
 
-void proposicion_retorno() {
+void proposicion_retorno(set folset) {
 
 	scanner();
 	expresion();
@@ -653,7 +716,7 @@ void proposicion_retorno() {
 
 }
 
-void proposicion_expresion() {
+void proposicion_expresion(set folset) {
 
 	if (sbol->codigo == CMAS || sbol->codigo == CMENOS || sbol->codigo == CIDENT
 			|| sbol->codigo == CPAR_ABR || sbol->codigo == CNEG
@@ -668,7 +731,7 @@ void proposicion_expresion() {
 		error_handler(22);
 }
 
-void expresion() {
+void expresion(set folset) {
 
 	expresion_simple();
 
@@ -691,7 +754,7 @@ void expresion() {
 	}
 }
 
-void expresion_simple() {
+void expresion_simple(set folset) {
 
 	if (sbol->codigo == CMAS || sbol->codigo == CMENOS) {
 		scanner();
@@ -706,7 +769,7 @@ void expresion_simple() {
 
 }
 
-void termino() {
+void termino(set folset) {
 
 	factor();
 
@@ -717,7 +780,7 @@ void termino() {
 
 }
 
-void factor() {
+void factor(set folset) {
 
 	switch (sbol->codigo) {
 	case CIDENT: {
@@ -798,7 +861,7 @@ void factor() {
 
 }
 
-void variable() {
+void variable(set folset) {
 	char ident_actual[TAM_LEXEMA];
 	if (sbol->codigo == CIDENT) {
 		strcpy(ident_actual, sbol->lexema);
@@ -837,7 +900,7 @@ void variable() {
 
 }
 
-void llamada_funcion() {
+void llamada_funcion(set folset) {
 
 	if (sbol->codigo == CIDENT) {
 		scanner();
@@ -866,7 +929,7 @@ void llamada_funcion() {
 
 }
 
-void lista_expresiones() {
+void lista_expresiones(set folset) {
 	es_parametro = 1;
 	expresion();
 
@@ -878,7 +941,7 @@ void lista_expresiones() {
 	es_parametro = 0;
 }
 
-void constante() {
+void constante(set folset) {
 	char tmp[TAM_LEXEMA];
 	switch (sbol->codigo) {
 	case CCONS_ENT:

@@ -3,9 +3,9 @@
 ***********************************************************/
 /*  39 TOKEN DE USO EN EL SCANNER */
 
-#define NADA  0L
-#define UNO   1L
-#define FLAG  (UNO<<30)
+#define NADA  0LL
+#define UNO   1LL
+//#define FLAG  (UNO<<30)
 
 #define CVOID       UNO       /* 1 */
 #define CCHAR      (UNO<<1)   /* 2 */
@@ -29,30 +29,62 @@
 #define CSHL      (UNO<<19)	/* c<< */  /* 524288 */
 #define CSHR      (UNO<<20)     /* c>> */  /* 1048576 */
 
-#define CDISTINTO  (UNO|FLAG)     /* */
-#define CIGUAL     (UNO<<1|FLAG)  /* */ 
-#define CMENOR     (UNO<<2|FLAG)  /* */ 
-#define CMEIG      (UNO<<3|FLAG)  /* */
-#define CMAYOR     (UNO<<4|FLAG)
-#define CMAIG      (UNO<<5|FLAG)
-#define CMAS       (UNO<<6|FLAG)
-#define CMENOS     (UNO<<7|FLAG)
-#define COR        (UNO<<8|FLAG)
-#define CMULT      (UNO<<9|FLAG)
-#define CDIV       (UNO<<10|FLAG)
-#define CAND       (UNO<<11|FLAG)
-#define CIDENT     (UNO<<12|FLAG)
-#define CNEG       (UNO<<13|FLAG)
-#define CCONS_ENT  (UNO<<14|FLAG)
-#define CCONS_FLO  (UNO<<15|FLAG)
-#define CCONS_CAR  (UNO<<16|FLAG)
-#define CCONS_STR  (UNO<<17|FLAG)
-#define CRETURN    (UNO<<18|FLAG)
+#define CDISTINTO  (UNO<<21)     /* */
+#define CIGUAL     (UNO<<22)  /* */ 
+#define CMENOR     (UNO<<23)  /* */ 
+#define CMEIG      (UNO<<24)  /* */
+#define CMAYOR     (UNO<<25)
+#define CMAIG      (UNO<<26)
+#define CMAS       (UNO<<27)
+#define CMENOS     (UNO<<28)
+#define COR        (UNO<<29)
+#define CMULT      (UNO<<30)
+#define CDIV       (UNO<<31)
+#define CAND       (UNO<<32)
+#define CIDENT     (UNO<<33)
+#define CNEG       (UNO<<34)
+#define CCONS_ENT  (UNO<<35)
+#define CCONS_FLO  (UNO<<36)
+#define CCONS_CAR  (UNO<<37)
+#define CCONS_STR  (UNO<<38)
+#define CRETURN    (UNO<<39)
   
-#define CEOF       (UNO<<19|FLAG)
-#define SEGUIR     (UNO<<20|FLAG)
+#define CEOF       (UNO<<40)
+#define SEGUIR     (UNO<<41)
 
 
 
 
 
+/* Para calcular los conjutos FIRST */
+
+#define UNIDAD_TRADUCCION            0
+#define DECLARACIONES                1
+#define ESPECIFICADOR_TIPO           2
+#define ESPECIFICADOR_DECLARACION    3
+#define DEFINICION_FUNCION           4
+#define DECLARACION_VARIABLE         5
+#define LISTA_DECLARACIONES_PARAM    6 
+#define DECLARACION_PARAMETRO        7
+#define DECLARADOR_INIT              8
+#define LISTA_DECLARACIONES_INIT     9
+#define CONSTANTE                    10
+#define LISTA_INICIALIZADORES        11
+#define LISTA_PROPOSICIONES          12
+#define LISTA_DECLARACIONES          13
+#define DECLARACION                  14
+#define PROPOSICION                  15
+#define PROPOSICION_EXPRESION        16
+#define PROPOSICION_COMPUESTA        17
+#define PROPOSICION_SELECCION        18
+#define PROPOSICION_ITERACION        19
+#define PROPOSICION_E_S              20
+#define PROPOSICION_RETORNO          21
+#define VARIABLE                     22
+#define EXPRESION                    23
+#define EXPRESION_SIMPLE             24
+#define RELACION                     25
+#define TERMINO                      26
+#define FACTOR                       27
+#define LLAMADA_FUNCION              28
+#define LISTA_EXPRESIONES            29

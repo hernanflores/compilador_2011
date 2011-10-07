@@ -12,6 +12,7 @@
 #include "var_globales.h"
 #include "ts.h"
 #include "error.h"
+#include "set.h"
 
 /*********** prototipos *************/
 
@@ -63,6 +64,8 @@ void insertarEnTSVariable();
 
 void scanner();
 
+void inic_set();
+
 /********** variables globales ************/
 
 token *sbol;
@@ -86,6 +89,8 @@ char const_char[];
 int es_parametro = 0;
 int tipo_id = NIL;
 
+set first[60];
+
 //revisa si ya hice push de nivel
 int pushie_func = 0;
 tipo_inf_res *ptr_inf_res;
@@ -93,6 +98,45 @@ int *ptr_cant_params;
 
 //chequeo por nombre de funcion main
 char nbre_func[];
+
+/*
+ Conjuntos de First
+ */
+
+void inic_set(){
+
+     first[UNIDAD_TRADUCCION] = cons((CVOID|CCHAR|CINT|CFLOAT),CEOF);
+     first[DECLARACIONES]   = cons((CVOID|CCHAR|CINT|CFLOAT),NADA);
+     first[ESPECIFICADOR_TIPO]   = cons((CVOID|CCHAR|CINT|CFLOAT),NADA);
+     first[ESPECIFICADOR_DECLARACION]   = cons((CCOR_ABR|CCOMA|CPYCOMA|CASIGNAC|CPAR_ABR),NADA);
+     first[DEFINICION_FUNCION]   = cons(CPAR_ABR,NADA);
+     first[DECLARACION_VARIABLE]   = cons((CCOR_ABR|CCOMA|CPYCOMA|CASIGNAC),NADA);
+     first[LISTA_DECLARACIONES_PARAM]   = first[ESPECIFICADOR_TIPO];
+     first[DECLARACION_PARAMETRO]   = first[ESPECIFICADOR_TIPO];
+     first[DECLARADOR_INIT]   = first[DECLARACION_VARIABLE];
+     first[CONSTANTE]   = cons(NADA, (CCONS_ENT|CCONS_FLO|CCONS_CAR));
+     first[LISTA_DECLARACIONES_INIT]   =  cons(NADA,CIDENT);
+     first[LISTA_INICIALIZADORES]   = first[CONSTANTE];
+     first[LISTA_DECLARACIONES]   = first[ESPECIFICADOR_TIPO];
+     first[DECLARACION]   = first[ESPECIFICADOR_TIPO];
+     first[PROPOSICION_COMPUESTA]   = cons(CLLA_ABR,NADA);
+     first[PROPOSICION_SELECCION]   = cons(CIF,NADA);
+     first[PROPOSICION_ITERACION]   = cons(CWHILE,NADA);
+     first[PROPOSICION_E_S]   = cons((CIN|COUT),NADA);
+     first[PROPOSICION_RETORNO]   = cons(NADA,CRETURN);
+     first[VARIABLE]   = cons(NADA,CIDENT);
+     first[RELACION]   = cons(NADA,(CDISTINTO|CIGUAL|CMENOR|CMEIG|CMAYOR|CMAIG));
+     first[FACTOR]   = une(cons(CPAR_ABR,(CNEG|CIDENT|CCONS_STR)),first[CONSTANTE]);
+     first[LLAMADA_FUNCION]   = cons(NADA,CIDENT);
+     first[TERMINO]   = first[FACTOR];
+     first[EXPRESION_SIMPLE]   = une(cons(NADA,(CMAS|CMENOS)),first[TERMINO]);
+     first[EXPRESION]   = first[EXPRESION_SIMPLE];
+     first[PROPOSICION_EXPRESION]   = une(cons(CPYCOMA,NADA),first[EXPRESION]);
+     first[PROPOSICION]   =  une(first[PROPOSICION_EXPRESION],une(first[PROPOSICION_COMPUESTA],une(first[PROPOSICION_SELECCION],une(first[PROPOSICION_ITERACION],une(first[PROPOSICION_E_S],first[PROPOSICION_RETORNO])))));
+     first[LISTA_PROPOSICIONES]   = first[PROPOSICION];
+     first[LISTA_EXPRESIONES]   = first[EXPRESION];
+
+}
 
 void scanner() {
 	int i;
@@ -199,7 +243,7 @@ long especificador_tipo() {
 		scanner();
 		break;
 	default:
-		inf_id->ptr_tipo = en_tabla("error");
+	inf_id->ptr_tipo = en_tabla("error");
 		error_handler(17);
 	}
 	tipo_id = inf_id->ptr_tipo;

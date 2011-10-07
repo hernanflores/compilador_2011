@@ -3,8 +3,8 @@
 ***********************************************************/
 /*  39 TOKEN DE USO EN EL SCANNER */
 
-#define NADA  0L
-#define UNO   1L
+#define NADA  0LL
+#define UNO   1LL
 #define FLAG  (UNO<<30)
 
 #define CVOID       UNO       /* 1 */
@@ -29,28 +29,28 @@
 #define CSHL      (UNO<<19)	/* c<< */  /* 524288 */
 #define CSHR      (UNO<<20)     /* c>> */  /* 1048576 */
 
-#define CDISTINTO  (UNO|FLAG)     /* */
-#define CIGUAL     (UNO<<1|FLAG)  /* */ 
-#define CMENOR     (UNO<<2|FLAG)  /* */ 
-#define CMEIG      (UNO<<3|FLAG)  /* */
-#define CMAYOR     (UNO<<4|FLAG)
-#define CMAIG      (UNO<<5|FLAG)
-#define CMAS       (UNO<<6|FLAG)
-#define CMENOS     (UNO<<7|FLAG)
-#define COR        (UNO<<8|FLAG)
-#define CMULT      (UNO<<9|FLAG)
-#define CDIV       (UNO<<10|FLAG)
-#define CAND       (UNO<<11|FLAG)
-#define CIDENT     (UNO<<12|FLAG)
-#define CNEG       (UNO<<13|FLAG)
-#define CCONS_ENT  (UNO<<14|FLAG)
-#define CCONS_FLO  (UNO<<15|FLAG)
-#define CCONS_CAR  (UNO<<16|FLAG)
-#define CCONS_STR  (UNO<<17|FLAG)
-#define CRETURN    (UNO<<18|FLAG)
+#define CDISTINTO  (UNO<<21)     /* */
+#define CIGUAL     (UNO<<22)  /* */ 
+#define CMENOR     (UNO<<23)  /* */ 
+#define CMEIG      (UNO<<24)  /* */
+#define CMAYOR     (UNO<<25)
+#define CMAIG      (UNO<<26)
+#define CMAS       (UNO<<27)
+#define CMENOS     (UNO<<28)
+#define COR        (UNO<<29)
+#define CMULT      (UNO<<30)
+#define CDIV       (UNO<<31)
+#define CAND       (UNO<<32)
+#define CIDENT     (UNO<<33)
+#define CNEG       (UNO<<34)
+#define CCONS_ENT  (UNO<<35)
+#define CCONS_FLO  (UNO<<36)
+#define CCONS_CAR  (UNO<<37)
+#define CCONS_STR  (UNO<<38)
+#define CRETURN    (UNO<<39)
   
-#define CEOF       (UNO<<19|FLAG)
-#define SEGUIR     (UNO<<20|FLAG)
+#define CEOF       (UNO<<40)
+#define SEGUIR     (UNO<<41)
 
 
 
