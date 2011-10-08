@@ -1,11 +1,12 @@
-int ;
+int;
 char ='3';
 
-float a[] = ; 
+float a[] =;
 
-int double (int as)  # falta {#
+int double (int as)
+# falta {#
 }
 
-void main () {
+void main() {
 
 #falta llave final #

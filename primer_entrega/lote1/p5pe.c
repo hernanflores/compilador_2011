@@ -1,12 +1,11 @@
-float  double (int x){
-  
-   x = x*2;
+float double (int x) {
 
-} 
-# error: falta return #
-
-void main () {
+	x = x*2;
 
 }
+# error: falta return #
 
+void main() {
+
+}
 

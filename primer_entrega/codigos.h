@@ -1,6 +1,6 @@
 /***********************************************************
-           CODIGOS PARA UTILIZAR EN EL SCANNER
-***********************************************************/
+ CODIGOS PARA UTILIZAR EN EL SCANNER
+ ***********************************************************/
 /*  39 TOKEN DE USO EN EL SCANNER */
 
 #define NADA  0LL
@@ -48,11 +48,7 @@
 #define CCONS_CAR  (UNO<<37)
 #define CCONS_STR  (UNO<<38)
 #define CRETURN    (UNO<<39)
-  
+
 #define CEOF       (UNO<<40)
 #define SEGUIR     (UNO<<41)
-
-
-
-
 

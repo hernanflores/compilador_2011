@@ -1,14 +1,15 @@
-int ;
+int;
 char ='3';
 
-float a[ ;
+float a[;
 
-int double ( # falta ) y { el tipo#
+int double (
+# falta ) y { el tipo#
 
-}
+	}
 
-void main () {
+	void main() {
 
-  int double;
+int	double;
 
 }

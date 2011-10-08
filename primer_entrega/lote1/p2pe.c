@@ -1,7 +1,6 @@
+int double (int x) {
 
-int  double (int x){
-  
-   return x*2;
+	return x*2;
 
 }
 

@@ -1,8 +1,9 @@
 void main() {
-  int a;
+	int a;
 
-  a = noesta[12]; # noesta debe ser insertada como TIPOARREGLO #
+	a = noesta[12];
+# noesta debe ser insertada como TIPOARREGLO #
 
-  noesta=a;
+noesta=a;
 
 }

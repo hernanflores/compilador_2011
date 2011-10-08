@@ -1,15 +1,14 @@
-float double (int x){
+float double (int x) {
 
-  return x*2;
+	return x*2;
 
 }
 
+void main() {
 
-void main () {
+	int c;
 
-  int c;
-
-  c = 3 * double ); # falta '(' .... #
+c = 3 * double );
+# falta '(' .... #
 }
-
 

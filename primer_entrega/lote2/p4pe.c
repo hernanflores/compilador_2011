@@ -1,7 +1,7 @@
-void main ( int argc) { 
+void main(int argc) {
 
- int a; 
- a = 1;
+	int a;
+	a = 1;
 }
 
 # error: la funcion main no puede tener argumentos #

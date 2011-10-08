@@ -103,38 +103,51 @@ char nbre_func[];
  Conjuntos de First
  */
 
-void inic_set(){
+void inic_set() {
 
-     first[UNIDAD_TRADUCCION] = cons((CVOID|CCHAR|CINT|CFLOAT),CEOF);
-     first[DECLARACIONES]   = cons((CVOID|CCHAR|CINT|CFLOAT),NADA);
-     first[ESPECIFICADOR_TIPO]   = cons((CVOID|CCHAR|CINT|CFLOAT),NADA);
-     first[ESPECIFICADOR_DECLARACION]   = cons((CCOR_ABR|CCOMA|CPYCOMA|CASIGNAC|CPAR_ABR),NADA);
-     first[DEFINICION_FUNCION]   = cons(CPAR_ABR,NADA);
-     first[DECLARACION_VARIABLE]   = cons((CCOR_ABR|CCOMA|CPYCOMA|CASIGNAC),NADA);
-     first[LISTA_DECLARACIONES_PARAM]   = first[ESPECIFICADOR_TIPO];
-     first[DECLARACION_PARAMETRO]   = first[ESPECIFICADOR_TIPO];
-     first[DECLARADOR_INIT]   = first[DECLARACION_VARIABLE];
-     first[CONSTANTE]   = cons(NADA, (CCONS_ENT|CCONS_FLO|CCONS_CAR));
-     first[LISTA_DECLARACIONES_INIT]   =  cons(NADA,CIDENT);
-     first[LISTA_INICIALIZADORES]   = first[CONSTANTE];
-     first[LISTA_DECLARACIONES]   = first[ESPECIFICADOR_TIPO];
-     first[DECLARACION]   = first[ESPECIFICADOR_TIPO];
-     first[PROPOSICION_COMPUESTA]   = cons(CLLA_ABR,NADA);
-     first[PROPOSICION_SELECCION]   = cons(CIF,NADA);
-     first[PROPOSICION_ITERACION]   = cons(CWHILE,NADA);
-     first[PROPOSICION_E_S]   = cons((CIN|COUT),NADA);
-     first[PROPOSICION_RETORNO]   = cons(NADA,CRETURN);
-     first[VARIABLE]   = cons(NADA,CIDENT);
-     first[RELACION]   = cons(NADA,(CDISTINTO|CIGUAL|CMENOR|CMEIG|CMAYOR|CMAIG));
-     first[FACTOR]   = une(cons(CPAR_ABR,(CNEG|CIDENT|CCONS_STR)),first[CONSTANTE]);
-     first[LLAMADA_FUNCION]   = cons(NADA,CIDENT);
-     first[TERMINO]   = first[FACTOR];
-     first[EXPRESION_SIMPLE]   = une(cons(NADA,(CMAS|CMENOS)),first[TERMINO]);
-     first[EXPRESION]   = first[EXPRESION_SIMPLE];
-     first[PROPOSICION_EXPRESION]   = une(cons(CPYCOMA,NADA),first[EXPRESION]);
-     first[PROPOSICION]   =  une(first[PROPOSICION_EXPRESION],une(first[PROPOSICION_COMPUESTA],une(first[PROPOSICION_SELECCION],une(first[PROPOSICION_ITERACION],une(first[PROPOSICION_E_S],first[PROPOSICION_RETORNO])))));
-     first[LISTA_PROPOSICIONES]   = first[PROPOSICION];
-     first[LISTA_EXPRESIONES]   = first[EXPRESION];
+	first[UNIDAD_TRADUCCION] = cons((CVOID | CCHAR | CINT | CFLOAT), CEOF);
+	first[DECLARACIONES] = cons((CVOID | CCHAR | CINT | CFLOAT), NADA);
+	first[ESPECIFICADOR_TIPO] = cons((CVOID | CCHAR | CINT | CFLOAT), NADA);
+	first[ESPECIFICADOR_DECLARACION] = cons(
+			(CCOR_ABR | CCOMA | CPYCOMA | CASIGNAC | CPAR_ABR), NADA);
+	first[DEFINICION_FUNCION] = cons(CPAR_ABR, NADA);
+	first[DECLARACION_VARIABLE] = cons((CCOR_ABR | CCOMA | CPYCOMA | CASIGNAC),
+			NADA);
+	first[LISTA_DECLARACIONES_PARAM] = first[ESPECIFICADOR_TIPO];
+	first[DECLARACION_PARAMETRO] = first[ESPECIFICADOR_TIPO];
+	first[DECLARADOR_INIT] = first[DECLARACION_VARIABLE];
+	first[CONSTANTE] = cons(NADA, (CCONS_ENT | CCONS_FLO | CCONS_CAR));
+	first[LISTA_DECLARACIONES_INIT] = cons(NADA, CIDENT);
+	first[LISTA_INICIALIZADORES] = first[CONSTANTE];
+	first[LISTA_DECLARACIONES] = first[ESPECIFICADOR_TIPO];
+	first[DECLARACION] = first[ESPECIFICADOR_TIPO];
+	first[PROPOSICION_COMPUESTA] = cons(CLLA_ABR, NADA);
+	first[PROPOSICION_SELECCION] = cons(CIF, NADA);
+	first[PROPOSICION_ITERACION] = cons(CWHILE, NADA);
+	first[PROPOSICION_E_S] = cons((CIN | COUT), NADA);
+	first[PROPOSICION_RETORNO] = cons(NADA, CRETURN);
+	first[VARIABLE] = cons(NADA, CIDENT);
+	first[RELACION] = cons(NADA,
+			(CDISTINTO | CIGUAL | CMENOR | CMEIG | CMAYOR | CMAIG));
+	first[FACTOR] = une(cons(CPAR_ABR, (CNEG | CIDENT | CCONS_STR)),
+			first[CONSTANTE]);
+	first[LLAMADA_FUNCION] = cons(NADA, CIDENT);
+	first[TERMINO] = first[FACTOR];
+	first[EXPRESION_SIMPLE] = une(cons(NADA, (CMAS | CMENOS)), first[TERMINO]);
+	first[EXPRESION] = first[EXPRESION_SIMPLE];
+	first[PROPOSICION_EXPRESION] = une(cons(CPYCOMA, NADA), first[EXPRESION]);
+	first[PROPOSICION] = une(
+			first[PROPOSICION_EXPRESION],
+			une(
+					first[PROPOSICION_COMPUESTA],
+					une(
+							first[PROPOSICION_SELECCION],
+							une(
+									first[PROPOSICION_ITERACION],
+									une(first[PROPOSICION_E_S],
+											first[PROPOSICION_RETORNO])))));
+	first[LISTA_PROPOSICIONES] = first[PROPOSICION];
+	first[LISTA_EXPRESIONES] = first[EXPRESION];
 
 }
 
@@ -210,7 +223,7 @@ void declaraciones() {
 	especificador_tipo();
 	if (sbol->codigo == CIDENT) {
 		strcpy(inf_id->nbre, sbol->lexema);
-                strcpy(nbre_func, sbol->lexema);
+		strcpy(nbre_func, sbol->lexema);
 		scanner();
 	} else {
 		error_handler(16);
@@ -243,7 +256,7 @@ long especificador_tipo() {
 		scanner();
 		break;
 	default:
-	inf_id->ptr_tipo = en_tabla("error");
+		inf_id->ptr_tipo = en_tabla("error");
 		error_handler(17);
 	}
 	tipo_id = inf_id->ptr_tipo;
@@ -269,7 +282,7 @@ void especificador_declaracion() {
 
 void definicion_funcion() {
 	int check_return = checkreturn;
-        
+
 	if (sbol->codigo == CPAR_ABR) {
 		inf_id->clase = CLASFUNC;
 		scanner();
@@ -293,15 +306,15 @@ void definicion_funcion() {
 		scanner();
 	else
 		error_handler(20);
-   
-       proposicion_compuesta();
 
-       if (strcmp("main", nbre_func)== 0){
-           check_return = 0;
-       }
+	proposicion_compuesta();
+
+	if (strcmp("main", nbre_func) == 0) {
+		check_return = 0;
+	}
 	if (check_return && !got_return) {
 		error_handler(37);
-                print();
+		print();
 	}
 	got_return = 0;
 	checkreturn = 0;
@@ -324,7 +337,7 @@ void declaracion_parametro() {
 	int es_referencia = 0;
 	//int es_arreglo = 0;
 
-        ptr_inf_res = (tipo_inf_res *)calloc(1, sizeof(tipo_inf_res));
+	ptr_inf_res = (tipo_inf_res *) calloc(1, sizeof(tipo_inf_res));
 	if (ptr_inf_res == NULL) {
 		error_handler(10);
 		exit(1);
@@ -434,8 +447,8 @@ void declarador_init() {
 		if (sbol->codigo == CCONS_ENT) {
 			constante();
 		} else {
-                    error_handler(38);
-                }
+			error_handler(38);
+		}
 		if (sbol->codigo == CCOR_CIE) {
 			scanner();
 			tam_arreglo = const_int;
@@ -855,7 +868,8 @@ void variable() {
 	 verificar la presencia del subindice */
 	if (ts[en_tabla(ident_actual)].ets->ptr_tipo == en_tabla("array")) {
 		if (sbol->codigo == CCOR_ABR) {
-			if (es_parametro && (sbol->codigo == CCOMA || sbol->codigo == CPAR_CIE)) {
+			if (es_parametro
+					&& (sbol->codigo == CCOMA || sbol->codigo == CPAR_CIE)) {
 				error_handler(43);
 			}
 			scanner();
@@ -953,7 +967,7 @@ void existFuncionMain() {
 	if (en_tabla("main") == NIL) {
 		/*No existe función main*/
 		error_print(15);
-                return;
+		return;
 	}
 
 	if (ts[en_tabla("main")].ets->ptr_tipo != en_tabla("void")) {
@@ -996,20 +1010,21 @@ void insertarEnTSArregloError(char lexema[]) {
 }
 
 void insertarEnTSVariable() {
-    
-    if (strcmp(inf_id->nbre, EMPTY_STR) != 0) {
 
-	inf_id->clase = CLASVAR;
-	if (es_arreglo) {
-		inf_id->ptr_tipo = en_tabla("array");
-		inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte * tam_arreglo;
-		inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
-		inf_id->desc.part_var.arr.cant_elem = tam_arreglo;
+	if (strcmp(inf_id->nbre, EMPTY_STR) != 0) {
 
-	} else {
-		inf_id->ptr_tipo = tipo_id;
-		inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte;
+		inf_id->clase = CLASVAR;
+		if (es_arreglo) {
+			inf_id->ptr_tipo = en_tabla("array");
+			inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte
+					* tam_arreglo;
+			inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
+			inf_id->desc.part_var.arr.cant_elem = tam_arreglo;
+
+		} else {
+			inf_id->ptr_tipo = tipo_id;
+			inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte;
+		}
+		insertarTS();
 	}
-	insertarTS();
-    }
 }
