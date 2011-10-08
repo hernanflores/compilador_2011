@@ -759,10 +759,14 @@ void proposicion_e_s(set folset) {
 			scanner();
 		else
 			error_handler(29);
-		expresion();
-		while (sbol->codigo == CSHL) {
-			scanner();
-			expresion();
+		expresion(folset | CSHL | first[EXPRESION] | CPYCOMA);
+		while (sbol->codigo == CSHL || in(sbol->codigo, first[EXPRESION])) {
+			if (sbol->codigo == CSHL) {
+				scanner();
+			} else
+				error_handler(29);
+
+			expresion(folset | CSHL | first[EXPRESION] | CPYCOMA);
 		}
 		if (sbol->codigo == CPYCOMA)
 			scanner();
@@ -772,43 +776,54 @@ void proposicion_e_s(set folset) {
 	}
 	default:
 		error_handler(30);
+		break;
 	}
 }
 
 void proposicion_retorno(set folset) {
 
 	scanner();
-	expresion();
+	expresion(folset | CPYCOMA);
 	if (sbol->codigo == CPYCOMA)
 		scanner();
 	else
 		error_handler(22);
 
+	test(folset);
+
 }
 
 void proposicion_expresion(set folset) {
+
+	test(first[PROPOSICION_EXPRESION], folset | CPYCOMA);
 
 	if (sbol->codigo == CMAS || sbol->codigo == CMENOS || sbol->codigo == CIDENT
 			|| sbol->codigo == CPAR_ABR || sbol->codigo == CNEG
 			|| sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO
 			|| sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR)
 
-		expresion();
+		expresion(folset | CPYCOMA);
 
 	if (sbol->codigo == CPYCOMA)
 		scanner();
 	else
 		error_handler(22);
+
+	test(folset);
 }
 
 void expresion(set folset) {
 
-	expresion_simple();
+	test(first[EXPRESION],
+			folset | CASIGNAC | first[EXPRESION_SIMPLE] | first[RELACION]);
+
+	expresion_simple(
+			folset | CASIGNAC | first[EXPRESION_SIMPLE] | first[RELACION]);
 
 	switch (sbol->codigo) {
 	case CASIGNAC: {
 		scanner();
-		expresion();
+		expresion(folset | first[EXPRESION_SIMPLE] | first[RELACION]);
 		break;
 	}
 	case CDISTINTO:
@@ -818,7 +833,7 @@ void expresion(set folset) {
 	case CMAYOR:
 	case CMAIG: {
 		scanner();
-		expresion();
+		expresion(folset | first[EXPRESION_SIMPLE]);
 		break;
 	}
 	}
@@ -826,31 +841,42 @@ void expresion(set folset) {
 
 void expresion_simple(set folset) {
 
+	test(first[EXPRESION_SIMPLE],
+			folset | CMAS | CMENOS | COR | first[TERMINO]);
+
 	if (sbol->codigo == CMAS || sbol->codigo == CMENOS) {
 		scanner();
 	}
 
-	termino();
+	termino(folset | CMAS | CMENOS | COR | first[TERMINO]);
 
 	while (sbol->codigo == CMAS || sbol->codigo == CMENOS || sbol->codigo == COR) {
 		scanner();
-		termino();
+		termino(folset);
 	}
 
 }
 
 void termino(set folset) {
 
-	factor();
+	factor(folset | CMULT | CDIV | CAND | first[FACTOR]);
 
-	while (sbol->codigo == CMULT || sbol->codigo == CDIV || sbol->codigo == CAND) {
-		scanner();
-		factor();
+	while (sbol->codigo == CMULT || sbol->codigo == CDIV || sbol->codigo == CAND
+			|| in(sbol->codigo, first[FACTOR])) {
+		if (sbol->codigo == CMULT || sbol->codigo == CDIV
+				|| sbol->codigo == CAND) {
+			scanner();
+		} else {
+			error_handler(78);
+		}
+		factor(folset | CMULT | CDIV | CAND | first[FACTOR]);
 	}
 
 }
 
 void factor(set folset) {
+
+	test(first[FACTOR], folset);
 
 	switch (sbol->codigo) {
 	case CIDENT: {
@@ -858,11 +884,11 @@ void factor(set folset) {
 		strcpy(token_actual, sbol->lexema);
 		switch (Clase_Ident(token_actual)) {
 		case CLASFUNC:
-			llamada_funcion();
+			llamada_funcion(folset);
 			break;
 		case CLASPAR:
 		case CLASVAR:
-			variable();
+			variable(folset | CPAR_CIE);
 			break;
 		default:
 			//Identificador no declarado
@@ -870,7 +896,7 @@ void factor(set folset) {
 			scanner();
 			if (sbol->codigo == CCOR_ABR) { //es arreglo
 				scanner();
-				expresion();
+				expresion(folset | CCOR_CIE);
 				if (sbol->codigo == CCOR_CIE) {
 					scanner();
 				} else {
@@ -906,14 +932,14 @@ void factor(set folset) {
 	case CCONS_ENT:
 	case CCONS_FLO:
 	case CCONS_CAR:
-		constante();
+		constante(folset);
 		break;
 	case CCONS_STR:
 		scanner();
 		break;
 	case CPAR_ABR: {
 		scanner();
-		expresion();
+		expresion(folset | CPAR_CIE);
 		if (sbol->codigo == CPAR_CIE)
 			scanner();
 		else
@@ -922,16 +948,18 @@ void factor(set folset) {
 	}
 	case CNEG: {
 		scanner();
-		expresion();
+		expresion(folset);
 		break;
 	}
 	default:
 		error_handler(31);
 	}
 
+	test(folset);
 }
 
 void variable(set folset) {
+	test(first[VARIABLE], folset | CLLA_ABR | first[EXPRESION] | CLLA_CIE);
 	char ident_actual[TAM_LEXEMA];
 	if (sbol->codigo == CIDENT) {
 		strcpy(ident_actual, sbol->lexema);
@@ -949,7 +977,7 @@ void variable(set folset) {
 				error_handler(43);
 			}
 			scanner();
-			expresion();
+			expresion(folset | CCOR_CIE);
 			if (sbol->codigo == CCOR_CIE)
 				scanner();
 			else
@@ -963,12 +991,13 @@ void variable(set folset) {
 		if (sbol->codigo == CCOR_ABR) {
 			scanner();
 			error_handler(32);
-			expresion();
+			expresion(folset | CCOR_CIE);
 			if (sbol->codigo == CCOR_CIE)
 				scanner();
 		}
 	}
 
+	test(folset);
 }
 
 void llamada_funcion(set folset) {
@@ -989,7 +1018,7 @@ void llamada_funcion(set folset) {
 			|| sbol->codigo == CPAR_ABR || sbol->codigo == CNEG
 			|| sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO
 			|| sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR) {
-		lista_expresiones();
+		lista_expresiones(folset | CPAR_CIE);
 	}
 
 	if (sbol->codigo == CPAR_CIE) {
@@ -998,16 +1027,17 @@ void llamada_funcion(set folset) {
 		error_handler(20);
 	}
 
+	test(folset);
 }
 
 void lista_expresiones(set folset) {
 	es_parametro = 1;
-	expresion();
+	expresion(folset | CCOMA);
 
 	while (sbol->codigo == CCOMA) {
 		scanner();
 
-		expresion();
+		expresion(folset | CCOMA);
 	}
 	es_parametro = 0;
 }
@@ -1035,7 +1065,7 @@ void constante(set folset) {
 		//scanner();
 		break;/*f_error(); aca va f_error, faltan los algoritmos de conversion a las constantes numericas. */
 	}
-
+	test(folset);
 }
 
 void existFuncionMain() {
