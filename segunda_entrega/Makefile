@@ -1,4 +1,4 @@
-obj = lex.yy.o ts.o parser.o error.o
+obj = lex.yy.o ts.o parser.o error.o set.o
 CC = gcc
 CFLAGS = -g
 
@@ -13,5 +13,7 @@ ts.o: ts.c ts.h
 
 error.o: error.c error.h var_globales.h
 
+set.o: set.c set.h
+
 clean:
-	$(RM) $(obj)    
+	$(RM) $(obj)      

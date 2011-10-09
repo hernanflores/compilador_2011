@@ -50,7 +50,7 @@ set cons(set x)
                             imprime set
 ***********************************************************************/
 void imp_set(set v){
-  printf("%X\n",v);
+  printf("%X\n",v); //ver
 };
 
 
