@@ -44,7 +44,7 @@ void fcarga (int vec[]) {
 
   i = 1;
   while (i < 35) {
-  cout << ;
+  cout << "";
   i = i + 1;
   }
 

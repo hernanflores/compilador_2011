@@ -44,7 +44,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="primer_entrega|primer_entrega/nbproject|primer_entrega/LotesdePrueba" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="segunda_entrega/lotes|primer_entrega|primer_entrega/nbproject|primer_entrega/LotesdePrueba" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -91,7 +91,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="primer_entrega|primer_entrega/nbproject|primer_entrega/LotesdePrueba" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="segunda_entrega/lotes|primer_entrega|primer_entrega/nbproject|primer_entrega/LotesdePrueba" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

@@ -243,7 +243,6 @@ void declaraciones(set folset) {
  * @return el codigo del tipo del identificador 
  */
 long especificador_tipo(set folset) {
-	//TODO test();
 	test(first[ESPECIFICADOR_TIPO], folset, 51);
 	checkreturn = 1;
 	switch (sbol->codigo) {
@@ -270,13 +269,11 @@ long especificador_tipo(set folset) {
 		break;
 	}
 	tipo_id = inf_id->ptr_tipo;
-	//TODO test();
 	test(folset, NADA, 52);
 }
 
 void especificador_declaracion(set folset) {
-	//TODO test();
-	test(first[DEFINICION_FUNCION] | first[DECLARACION_VARIABLE], folset, 53);
+//	test(first[DEFINICION_FUNCION] | first[DECLARACION_VARIABLE], folset, 53);
 	switch (sbol->codigo) {
 	case CPAR_ABR:
 		definicion_funcion(folset);
@@ -410,7 +407,6 @@ void declaracion_parametro(set folset) {
 }
 
 void lista_declaraciones_init(set folset) {
-//TODO test
 	test(first[LISTA_DECLARACIONES_INIT],
 			folset | first[DECLARADOR_INIT] | CCOMA | CIDENT, 57);
 
@@ -468,7 +464,6 @@ void declaracion_variable(set folset) {
 	else
 		error_handler(22);
 
-	//TODO test();
 	test(folset, NADA, 54);
 
 }
@@ -1092,7 +1087,7 @@ void constante(set folset) {
 		scanner();
 		break;
 	default:
-		//scanner();
+		error_handler(38);
 		break;/*f_error(); aca va f_error, faltan los algoritmos de conversion a las constantes numericas. */
 	}
 	test(folset, NADA, 74);
