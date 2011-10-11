@@ -1,6 +1,6 @@
 #define TAM_LEXEMA 200
 
-typedef struct { long codigo;
+typedef struct { long long codigo;
                  char lexema[TAM_LEXEMA];
                }token;
 
