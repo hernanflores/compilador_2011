@@ -469,6 +469,7 @@ void declaracion_variable(set folset) {
 }
 
 void declarador_init(set folset) {
+    int tieneAsig  = 1;
 	test(
 			first[DECLARADOR_INIT] | folset,
 			folset | first[CONSTANTE] | CLLA_ABR | CLLA_CIE | CASIGNAC
@@ -495,7 +496,8 @@ void declarador_init(set folset) {
 					folset | CLLA_ABR | CLLA_CIE | CASIGNAC | CCOR_CIE
 							| first[LISTA_INICIALIZADORES]);
 		} else {
-			error_handler(38);
+                    tieneAsig = 0;
+			//error_handler(38);
 		}
 		if (sbol->codigo == CCOR_CIE) {
 			scanner();
@@ -518,7 +520,9 @@ void declarador_init(set folset) {
 			else
 				error_handler(24);
 
-		}
+		} else if (!tieneAsig) {
+                     error_handler(38);
+                }
 
 		break;
 	}
