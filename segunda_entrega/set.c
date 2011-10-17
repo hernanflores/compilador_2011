@@ -27,8 +27,8 @@ set une(set c1, set c2)
 /****************************************************************************
 						in()
 ****************************************************************************/
-int in(long e,set A) { /* x pertenece a A ? */
-  long r;
+int in(long long e,set A) { /* x pertenece a A ? */
+  long long r;
 
        r= (e & A);    
        if (e == r) return 1;

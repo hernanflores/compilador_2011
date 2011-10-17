@@ -969,6 +969,7 @@ void factor(set folset) {
 void variable(set folset) {
 	test(first[VARIABLE], folset | CLLA_ABR | first[EXPRESION] | CLLA_CIE, 70);
 	char ident_actual[TAM_LEXEMA];
+        strcpy(ident_actual, "");
 	if (sbol->codigo == CIDENT) {
 		if (en_tabla(sbol->lexema) == NIL) {
 			error_handler(33);

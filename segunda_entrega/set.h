@@ -6,7 +6,7 @@ typedef long long set;
 
 
 set  une(set,set);              /* retorna la union de dos conjuntos */
-int in(long,set);               /* si un elemento pertenece al conjunto */
+int in(long long,set);               /* si un elemento pertenece al conjunto */
 set  cons(long long);           /* construye un set */
 void imp_set(set);
 
