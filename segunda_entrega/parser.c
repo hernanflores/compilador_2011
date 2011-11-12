@@ -141,7 +141,7 @@ int tam_arreglo = 0;
 
 int const_int = 0;
 float const_float = 0;
-char const_char[];
+char const_char;
 
 set first[60];
 
@@ -1953,10 +1953,6 @@ int constante(set folset, int ath_tipo) {
             break;
         case CCONS_CAR:
             ats_tipo = TIPO_CHAR;
-            strcat(tmp, "\"");
-            strcat(tmp, sbol->lexema);
-            strcat(tmp, "\"");
-            strcpy(sbol->lexema, tmp);
             strcpy(const_char, sbol->lexema);
             scanner();
             break;
