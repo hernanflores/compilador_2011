@@ -1,4 +1,3 @@
-
 #line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
@@ -2179,7 +2178,6 @@ int main( int argc,char *argv[]) {
 
 }
 */
-
 
 
 

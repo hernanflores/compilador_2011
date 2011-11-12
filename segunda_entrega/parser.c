@@ -28,7 +28,7 @@
 /*********** prototipos *************/
 void unidad_traduccion(set folset);
 void declaraciones(set folset);
-long especificador_tipo(set folset);
+int especificador_tipo(set folset);
 void especificador_declaracion(set folset, int ath_tipo);
 void definicion_funcion(set folset, int ath_tipo);
 void declaracion_variable(set folset, int ath_tipo);
@@ -540,12 +540,13 @@ int main(int argc, char *argv[]) {
 
     nro_linea = 0;
 
-    if (argc != 3) {
-        printf("Argumentos: %d \n", argc);
-        error_handler(6);
-        error_handler(COD_IMP_ERRORES);
-        exit(1);
-    }
+    if (argc == 3 && strcmp(argv[1], "-c") == 0) { // ./ucc -c programa.c
+        if (argv[2][strlen(argv[2]) - 2] != '.' || argv[2][strlen(argv[2]) - 1] != 'c') {
+            error_handler(100);
+            error_handler(COD_IMP_ERRORES);
+            exit(1);
+        }
+    
     if (strcmp(argv[1], "-c") == 0) {
         if ((yyin = fopen(argv[2], "r")) == NULL) {
             error_handler(7);
@@ -555,10 +556,12 @@ int main(int argc, char *argv[]) {
 
         sbol = &token1; /* la variable token */
 
+        
+        init_generacion(argv[2]);
         inic_tablas();
         init_tipos();
         inic_set();
-
+        
         scanner();
         unidad_traduccion(CEOF);
 
@@ -570,9 +573,36 @@ int main(int argc, char *argv[]) {
         generar_salida();
         /*Chequemos que no haya errores, sino imprimos errores*/
         if (cant_errores_x_linea > 0) {
-            print();
+            print_aux();
         }
     }
+    }
+    else if (argc == 3 && strcmp(argv[1],"-e") == 0) {	// ./ucc -e programa.o
+		if (argv[2][strlen(argv[2])-2] != '.' || argv[2][strlen(argv[2])-1] != 'o') {
+			error_handler(101);
+			error_handler(COD_IMP_ERRORES);
+			exit(1);
+		}
+		if ((yyin = fopen(argv[2], "r" )) == NULL) {
+			error_handler(7);
+			error_handler(COD_IMP_ERRORES);
+			exit(1);
+		}
+		
+		// OK, INTERPRETAR ---------------------------------
+		
+		// CARGAR ARCHIVO EN ZONA PROGRAMA Y ZONA CONSTANTES STRING
+		fread(P, sizeof(float), TAM_PROG, yyin);
+		fread(C, sizeof(char),  TAM_CTES, yyin);
+		
+		interprete();
+		
+  }
+	else {		// PARAMETROS INVALIDOS
+		error_handler(6);
+		error_handler(COD_IMP_ERRORES);
+		exit(1);  
+	}
 
 }
 
@@ -601,7 +631,7 @@ void declaraciones(set folset) {
  * 
  * @return el codigo del tipo del identificador 
  */
-long especificador_tipo(set folset) {
+int especificador_tipo(set folset) {
     test(first[ESPECIFICADOR_TIPO], folset, 51);
     checkreturn = 1;
     switch (sbol->codigo) {
@@ -629,6 +659,7 @@ long especificador_tipo(set folset) {
     }
     tipo_id = inf_id->ptr_tipo;
     test(folset, NADA, 52);
+    return tipo_id;
 }
 
 void especificador_declaracion(set folset, int ath_tipo) {
@@ -692,7 +723,7 @@ void definicion_funcion(set folset, int ath_tipo) {
     }
     if (check_return && !got_return) {
         error_handler(37);
-        print();
+        print_aux();
     }
     got_return = 0;
     checkreturn = 0;
@@ -718,7 +749,6 @@ void declaracion_parametro(set folset) {
     //	test(first[DECLARACION_PARAMETRO],
     //			folset | CAMPER | CIDENT | CLLA_ABR | CLLA_CIE, 55);
     tipoParam = especificador_tipo(folset | CAMPER | CIDENT | CLLA_ABR | CLLA_CIE);
-    int es_referencia = 0;
     //int es_arreglo = 0;
 
     ptr_inf_res = (tipo_inf_res *) calloc(1, sizeof (tipo_inf_res));
@@ -732,11 +762,6 @@ void declaracion_parametro(set folset) {
         scanner();
     } else {
         ptr_inf_res->tipo_pje = 'v';
-    }
-
-    if (sbol->codigo == CAMPER) {
-        es_referencia = 1;
-        scanner();
     }
 
     if (sbol->codigo == CIDENT) {
@@ -768,7 +793,8 @@ void declaracion_parametro(set folset) {
     ptr_inf_res = ptr_inf_res->ptr_sig;
     (*ptr_cant_params)++;
     ptr_inf_res = NULL;
-    insertarTS();
+    //insertarTS();
+    insertarEnTSVariable();
     test(folset, NADA, 56);
 
 }
@@ -918,6 +944,9 @@ int declarador_init(set folset, int ath_tipo) {
                     error_handler(23);
 
                 int ats_cant = lista_inicializadores(folset | CLLA_CIE, ath_tipo);
+                
+                if (ats_cant>0) 
+                    tam_arreglo = ats_cant;
 
                 if (sbol->codigo == CLLA_CIE)
                     scanner();
@@ -1762,7 +1791,8 @@ int variable(set folset, int ath_tipo) {
                 inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
                 inf_id->ptr_tipo = en_tabla("array");
             }
-            insertarTS();
+            //insertarTS();
+            insertarEnTSVariable();
         }
         strcpy(ident_actual, sbol->lexema);
         scanner();
@@ -1801,6 +1831,7 @@ int variable(set folset, int ath_tipo) {
         }
     }
     if (ats_tipo == 99) {
+        pos = en_tabla(ident_actual);
         if (Tipo_Ident(ident_actual) == en_tabla("array") && Clase_Ident(ident_actual) == CLASVAR) { // no se puede usar esArreglo, porque en las llamadas a funcion, si es conocido no se setea
             // sintetizo el tipo base
             ats_tipo = ts[pos].ets->desc.part_var.arr.ptero_tipo_base;
@@ -1877,10 +1908,10 @@ int variable(set folset, int ath_tipo) {
 }
 
 void llamada_funcion(set folset) {
-	char lexema[TAM_LEXEMA];
+    char lexema[TAM_LEXEMA];
 
     if (sbol->codigo == CIDENT) {
-	strcpy(lexema, sbol->lexema);
+        strcpy(lexema, sbol->lexema);
         scanner();
     } else {
         error_handler(16);
@@ -1954,6 +1985,7 @@ int constante(set folset, int ath_tipo) {
         case CCONS_CAR:
             ats_tipo = TIPO_CHAR;
             strcpy(const_char, sbol->lexema);
+            //const_char = sbol->lexema;
             scanner();
             break;
         default:
@@ -2082,5 +2114,20 @@ void insertarEnTSVariable() {
             inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte;
         }
         insertarTS();
+    }
+}
+
+void insertarFuncionEnTS() {
+    if (strcmp(inf_id->nbre, EMPTY_STR) != 0) {
+        inf_id->clase = CLASFUNC;
+        inf_id->ptr_tipo = tipoDeRetornoDeclaracion;
+        if ((*ptr_cant_params) > 0) { // si hay parametros
+            inf_id->desc.part_var.sub.cant_par = (*ptr_cant_params);
+            inf_id->desc.part_var.sub.ptr_inf_res = ptr_inf_res;
+        }
+        insertarTS();
+
+        //tipoDeRetornoDeclaracionFuncion = tipoDeRetornoDeclaracion;
+        //strcpy(identificadorDeclaracion, STR_VACIO);
     }
 }

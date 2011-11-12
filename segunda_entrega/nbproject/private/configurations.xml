@@ -20,22 +20,27 @@
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
       </dbx_gdbdebugger>
       <gizmo_options version="3">
+        <configurationname>GizmoSimple</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
         <engine>gdb</engine>
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH} -c "</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH} -c /home/hernan/repos/compilador_2011/primer_entrega/LotesdePrueba/lotesFail /p2pe.c"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/hernan/repos/compilador_2011/primer_entrega/LotesdePrueba/lotesFail /p2pe.c</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/hernan/repos/compilador_2011/primer_entrega/LotesdePrueba/lotesFail/p2pe.c</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/hernan/Downloads/lote1/p1.c</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/software/workspace/compilador_2011/segunda_entrega/lote1/p1.c</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/software/workspace/compilador_2011//primer_entrega/LotesdePrueba/lotesOk/prog1se.c</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/software/workspace/compilador_2011/primer_entrega/LotesdePrueba/lotesOk/prog1se.c</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/prog1se.c</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -c "/home/ale/prog1se.c"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH} -c /home/ale/prog1se.c"</runcommandpicklistitem>
+          <runcommandpicklistitem>${OUTPUT_PATH} -c /home/ale/prog1se.c</runcommandpicklistitem>
+          <runcommandpicklistitem>${OUTPUT_PATH} -c /home/ale/prog1se.o</runcommandpicklistitem>
+          <runcommandpicklistitem>${OUTPUT_PATH} -e /home/ale/prog1se.o</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" -c /home/hernan/Downloads/lote1/p1.c</runcommand>
+        <runcommand>${OUTPUT_PATH} -e /home/ale/prog1se.o</runcommand>
         <rundir>.</rundir>
-        <buildfirst>true</buildfirst>
+        <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>
         <remove-instrumentation>0</remove-instrumentation>
         <environment>

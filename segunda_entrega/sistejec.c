@@ -8,7 +8,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 
-# include "soporte_ejecucion.h"  // Definiciones y Constantes del Sistema de Ejecuci�n
+# include "soporte_ejecucion.h"  // Definiciones y Constantes del Sistema de Ejecuci¢n
 
 
 int tc = sizeof(char); //tamano del char
@@ -25,13 +25,13 @@ int rpi;
 /* ---------------- ZONA PARA EL PROGRAMA MOPA ------------------- */
 
 float P[TAM_PROG];
-int lp=0;           // pr�ximo libre del programa
+int lp=0;           // pr¢ximo libre del programa
 
 
 /* ---------------- ZONA PARA LAS CONSTANTAS ------------------- */
 
 char C[TAM_CTES];
-int lc=0;           // pr�ximo libre de las constantes
+int lc=0;           // pr¢ximo libre de las constantes
 
 /* ---------------- ZONA PARA EL VECTOR DISPLAY ------------------- */
 		
@@ -49,7 +49,7 @@ int ls=0;           // tope del stack
 void interprete();
 
 
-int  main_sistejec(){
+int main_sistejec(){
 
   P[lp++]= INPP;
 
@@ -93,7 +93,7 @@ void interprete(){
   while (P[rpi]!= PARAR) {
 
     if (ls >= TAM_STACK){
-      printf("\nError: Overflow del Stack de Ejecuci�n\n");
+      printf("\nError: Overflow del Stack de Ejecuci¢n\n");
       exit(1);
     }
    
@@ -108,16 +108,19 @@ void interprete(){
 	  case 0: 
             rpi++;
 	    S[ls] =  (char) P[rpi];
+	    //printf(">>> DEBUG >>> cargo char %c\n", (char) P[rpi]);
 	    ls += tc;
 	    break;
 	  case 1: 
 	    rpi ++;
 	    *( (int*) &S[ls] ) = (int)P[rpi];
+	    //printf(">>> DEBUG >>> cargo int %d\n", (int) P[rpi]);
 	    ls += te;
 	    break;
           case 2: 
 	    rpi ++;
 	    *( (float*) &S[ls] ) = P[rpi];
+	    //printf(">>> DEBUG >>> cargo float %.2f\n", P[rpi]);
 	    ls += tf;
 	    break;
 	  }	
@@ -146,7 +149,7 @@ void interprete(){
        
 	  for ( i = 0; i < tipo; i++) {
 	      if (ls >= TAM_STACK){
-		printf("\nError: Overflow del Stack de Ejecuci�n\n");
+		printf("\nError: Overflow del Stack de Ejecuci¢n\n");
 		exit(1);
 	      }
 	      S[ls] = S[ D[nivel] + despl + i ];
@@ -483,15 +486,23 @@ void interprete(){
 	  }	
           // copia byte a byte el tope del stack en la variable.
 	  ls -= tipo;
+	  
+	  /*// DEBUG 
+	  switch ((int)P[rpi-1]) {
+	  	case 0: printf(">>> DEBUG >>> almacena char %c\n", (char) S[ls]); break;
+	  	case 1: printf(">>> DEBUG >>> almacena int %d\n", (int) S[ls]); break;
+	  	case 2: printf(">>> DEBUG >>> almacena float %.2f\n", (float) S[ls]); break;
+	  }*/
+	  
 	  for ( i = 0; i < tipo; i++) {
 	      if (ls >= TAM_STACK){
-		printf("\nError: Overflow del Stack de Ejecuci�n\n");
+		printf("\nError: Overflow del Stack de Ejecuci¢n\n");
 		exit(1);
 	      }
 	      S[ D[nivel] + despl + i ] = S[ls];
 	      ls++;
           }
-          ls -= tipo;
+          //ls -= tipo;		// ERROR --- ESTO ESTABA MAL PORQUE LUEGO DEL ALMACENAR VA UN POP (con eso es como si lo hiciera aqui)
           break;
        }
       
@@ -549,6 +560,7 @@ void interprete(){
 		ls = (ls - te) + tf;  
 	      }
 	      break;
+	    case 2: rpi++; break;	// AGREGUE ESTE CASE, PARA QUE EN CASO DE CAST FUTURO TAMBIEN CONSUMA EL tipo2
             }
 	    break;
 
@@ -556,7 +568,8 @@ void interprete(){
 	rpi++;
 	switch ((int)P[rpi++]) {
 	  case 0: 
-            scanf("%c", &S[ls]);
+            //scanf("%c", &S[ls]);						// NO FUNCA
+            S[ls] = getchar(); S[ls] = getchar();		// ESTO SI, PERO DEBE ESTAR 2 VECES ¿WTF?
 	    ls += tc;
           break;
 	  case 1: 
@@ -582,7 +595,7 @@ void interprete(){
             ls -= te;
 	    break;
           case 2: 
-	    printf("%f", (*(float *) &S[ls - tf]) );
+	    printf("%.3f", (*(float *) &S[ls - tf]) );
             ls -= tf;
 	    break;
 	}
@@ -594,30 +607,41 @@ void interprete(){
         ls += te;
 	break;
 
-      case IMPCS: //IMPRCS
+      case IMPCS: //IMPCS
 	rpi++;
 	printf("%s", &C[(* (int *) & S[ls-te])] );
         ls -= te;
 	break;
 
       case BIFS: //BIFS desp
-	rpi++;
-	rpi += (int) P[rpi++];
+	//rpi++;
+	//rpi += (int) P[rpi]; rpi++;
+        rpi++;
+        rpi += (int) P[rpi] + 1;
         break;
 	
       case BIFF: //BIFF tipo desp
   	rpi++;
         switch ((int)P[rpi++]) {
 	  case 0: 
-            if(S[ls-tc] == 0) rpi += (int) P[rpi++];
+            if(S[ls-tc] == 0) rpi += (int) P[rpi];
+            rpi++;
             ls -= tc;   
           break;
 	  case 1: 
-	    if((* (int *) &S[ls-te]) == 0) rpi += (int) P[rpi++];
+/*
+	    if((* (int *) &S[ls-te]) == 0) rpi += (int) P[rpi];
+	    rpi++;
             ls -= te;
+*/
+              rpi++;
+              if((* (int *) &S[ls-te]) == 0) {    rpi += (int) P[rpi] + 1;}
+              else rpi++;
+              ls -= te;
 	    break;
           case 2: 
-	    if((* (float *) &S[ls-tf]) == 0) rpi += (int) P[rpi++];
+	    if((* (float *) &S[ls-tf]) == 0) rpi += (int) P[rpi];
+	    rpi++;
             ls -= tf;
 	    break;
 	}
@@ -644,14 +668,13 @@ void interprete(){
        //
     }   // del if ls < TAM_STACK
     else {
-	 printf("\nError: Overflow del Stack de Ejecuci�n\n");
+	 printf("\nError: Overflow del Stack de Ejecuci¢n\n");
 	 exit(1);
     }
  
   } // del while
  
 } // de la funcion interprete
-
 
 
 

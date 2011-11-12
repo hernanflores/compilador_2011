@@ -2,6 +2,54 @@
 <configurationDescriptor version="79">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df name="segunda_entrega" root=".">
+      <df name="correccion">
+        <df name="lotes_ejecutables">
+          <in>p1e.c</in>
+          <in>p1e.code</in>
+          <in>p2e.c</in>
+          <in>p2e.code</in>
+          <in>p3e.c</in>
+          <in>p3e.code</in>
+          <in>p4e.c</in>
+          <in>p4e.code</in>
+        </df>
+        <df name="lotes_error">
+          <in>p1ch.c</in>
+          <in>p1ch.code</in>
+          <in>p2ch.c</in>
+          <in>p2ch.code</in>
+          <in>p3ch.c</in>
+          <in>p3ch.code</in>
+          <in>p4ch.c</in>
+          <in>p4ch.code</in>
+          <in>p5ch.c</in>
+          <in>p5ch.code</in>
+          <in>p6ch.c</in>
+          <in>p6ch.code</in>
+        </df>
+        <in>correccion.txt</in>
+        <in>lotes1.renombrar.tgz</in>
+        <in>lotes_ejecutables.renombrar.tgz</in>
+        <in>p1ch.c</in>
+        <in>p1e.c</in>
+        <in>p2ch.c</in>
+        <in>p2e.c</in>
+        <in>p3ch.c</in>
+        <in>p3e.c</in>
+        <in>p4ch.c</in>
+        <in>p4e.c</in>
+        <in>p5ch.c</in>
+        <in>p6ch.c</in>
+        <in>su-salida.err</in>
+      </df>
+      <df name="lote1">
+        <in>p1.c</in>
+        <in>p2.c</in>
+        <in>p3.c</in>
+        <in>p4.c</in>
+        <in>p5.c</in>
+        <in>p6.c</in>
+      </df>
       <in>codigos.h</in>
       <in>error.c</in>
       <in>error.h</in>
@@ -9,6 +57,8 @@
       <in>parser.c</in>
       <in>set.c</in>
       <in>set.h</in>
+      <in>sistejec.c</in>
+      <in>soporte_ejecucion.h</in>
       <in>ts.c</in>
       <in>ts.h</in>
       <in>var_globales.h</in>
