@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "codigos.h"
 #include "var_globales.h"
 #include "ts.h"
@@ -27,7 +28,7 @@
 /*********** prototipos *************/
 void unidad_traduccion(set folset);
 void declaraciones(set folset);
-int especificador_tipo(set folset);
+long especificador_tipo(set folset);
 void especificador_declaracion(set folset, int ath_tipo);
 void definicion_funcion(set folset, int ath_tipo);
 void declaracion_variable(set folset, int ath_tipo);
@@ -124,6 +125,10 @@ extern FILE *yyin;
 // tipos para el chequeo de tipos
 int TIPO_INIT, TIPO_VOID, TIPO_CHAR, TIPO_INT, TIPO_FLOAT, TIPO_ERROR, TIPO_STRING;
 
+// para el chequeo de los parametros enviados a una funcion
+typedef enum {EXPRESION_INIT, EXPRESION_VARIABLE, EXPRESION_ARREGLO, EXPRESION_OTRO, EXPRESION_FIN} estadosDeExpresion;
+estadosDeExpresion expresionActual;		// para saber si un parametro es una variable
+
 /**
  variable para verificar retornon de función*/
 int checkreturn;
@@ -158,6 +163,13 @@ FILE * code; // archivo de salida codigo generado string para test
 char nombreSalida[40]; // nombre del archivo de salida codigo generado objeto
 char nombreCode[40]; // nombre del archivo de salida codigo generado string para test
 
+// para localizar variables en la memoria de programa
+int nivel = 0;
+int desplazamiento = 0;
+
+// para saber donde almacenar luego de invocar a variable()
+int variableNivel = -1;
+int variableDesplaz = -1;
 
 //revisa si ya hice push de nivel
 int pushie_func = 0;
@@ -216,16 +228,129 @@ void inic_set() {
 
 }
 
+/*
+ 
+ FUNCIONES DE GENERACION DE CODIGO
+ 
+ */
+
 void generarCast(int tipoBaseEjec, int tipoDestEjec) {
-    if (P[lp - 3] != CAST) { // para evitar recastear un cast futuro
-        if (tipoBaseEjec < tipoDestEjec) {
-            P[lp++] = CAST;
-            P[lp++] = tipoBaseEjec;
-            P[lp++] = tipoDestEjec;
-            fprintf(code, "CAST\t%d\t%d\n", tipoBaseEjec, tipoDestEjec);
-        }
-    }
+	if (P[lp-3] != CAST) {	// para evitar recastear un cast futuro
+		if (tipoBaseEjec < tipoDestEjec) {
+			P[lp++]= CAST;
+			P[lp++]= tipoBaseEjec;
+			P[lp++]= tipoDestEjec;
+			fprintf(code,"CAST\t%d\t%d\n", tipoBaseEjec, tipoDestEjec);
+		}
+	}
 }
+
+void generarAlmacenar(int niv, int desp, int tipo) {
+	P[lp++]= ALM;
+	P[lp++]= niv;
+	P[lp++]= desp;
+	P[lp++]= tipo;
+	fprintf(code,"ALM\t%d\t%d\t%d\n", niv, desp, tipo);
+}
+
+void generarPop(int tipo) {
+	P[lp++]= POP;
+	P[lp++]= tipo;
+	fprintf(code,"POP\t%d\n", tipo);
+}
+
+void generarLeer(int tipo) {
+	P[lp++]= LEER;
+	P[lp++]= tipo;
+	fprintf(code,"LEER\t%d\n", tipo);
+}
+
+void generarImprimir(int tipo) {
+	P[lp++]= IMPR;
+	P[lp++]= tipo;
+	fprintf(code,"IMPR\t%d\n", tipo);
+}
+
+void generarImprimirString() {
+	P[lp++]= IMPCS;
+	fprintf(code,"IMPCS\n");
+}
+
+void generarInvertir(int tipo) {
+	P[lp++]= INV;
+	P[lp++]= tipo;
+	fprintf(code,"INV\t%d\n", tipo);
+}
+
+void generarNegacion(int tipo) {
+	P[lp++]= NEG;
+	P[lp++]= tipo;
+	fprintf(code,"NEG\t%d\n", tipo);
+}
+
+// retorna la direccion donde se debe ubicar el tipo al que se castea
+int generarCastFuturo(int tipoBaseEjec) {
+	int ret;
+	P[lp++]= CAST;
+	P[lp++]= tipoBaseEjec;
+	ret = lp;
+	P[lp++]= -1;	// TIPO FUTURO
+	fprintf(code,"CAST\t%d\tFUTURO\n", tipoBaseEjec);
+	return ret;
+}
+
+// verifica si a la izaquierda de una asignacion, hay una variable
+int esVarIzqAsignacion() {
+	char str[200];
+	char aux[TAM_LEXEMA];
+	char id[TAM_LEXEMA];
+	int i,j=0,k;
+	int esVar;
+	
+	strcpy(str,linea);
+	strcpy(aux,"");
+	strcpy(id,"");
+	i = strlen(str) - 1;
+	
+	while (i>=0 && !isalnum(str[i]) && str[i]!=']') {
+		i--;
+	}
+	if (i>=0 && str[i]==']') {
+		while (i>=0 && str[i]!='[') {
+			i--;
+		}
+		i--;
+	}
+	while (i>=0 && isalnum(str[i])) {
+		aux[j] = str[i];
+		i--;
+		j++;
+	}
+	k = i;
+	aux[j] = '\0';
+	for (i=strlen(aux)-1,j=0; i>=0; i--,j++) {
+		id[j] = aux[i];
+	}
+	id[j] = '\0';
+	
+	esVar = en_tabla(id) != NIL && (Clase_Ident(id) == CLASVAR || Clase_Ident(id) == CLASPAR);
+	if (esVar && k>=0) {
+		for (i=0; i<=k; k--) {
+			if (str[k] == '(' || str[k] == ')' || str[k] == '=' || str[k] == ';' || str[k] == '{' || str[k] == '}' || 
+					(str[k]=='<' && k-1>=0 && str[k-1]=='<')) {
+				break;
+			}
+			else if (str[k]!=' ' && str[k]!='\t' && str[k]!='\n') {
+				esVar = 0;
+				break;
+			}
+		}
+	}
+	
+	//printf(">>> STR IZQ: %s --- ES VAR: %d\n", id, esVar);
+	return esVar;
+}
+
 
 int tipoSistEjec(int tipo) {
     if (tipo == TIPO_CHAR) {
@@ -238,6 +363,44 @@ int tipoSistEjec(int tipo) {
         // ERROR
         return TIPO_FLOAT_SIST_EJEC;
     }
+}
+
+// si los tipos a cohertir son char, int o float, retorna la cohersion (el tipo mas grande),
+// caso contrario devuelve TIPO_ERROR.
+// para ser usado dentro de expresiones (operaciones relacionales/aritmeticas/logicas).
+int cohersion(int t1, int t2) {
+	int ret;
+	
+	if (t1 == TIPO_INIT) {	// cuando la herencia de tipos fue inicializada, retorna el segundo tipo
+		ret = t2;
+	}
+	else if ((t1 == TIPO_ERROR) || (t2 == TIPO_ERROR) || 
+			(t1 == TIPO_VOID) || (t2 == TIPO_VOID) || 
+			(t1 == TIPO_STRING) || (t2 == TIPO_STRING) || 
+			(t2 == TIPO_INIT)) {	// tipos incorrectos para realizar la cohersion
+		ret = TIPO_ERROR;
+	}
+	else {	// tipos correctos para realizar la cohersion
+		if (t1 == TIPO_FLOAT) {
+			ret = TIPO_FLOAT;
+		}
+		else if (t1 == TIPO_INT) {
+			if (t2 == TIPO_FLOAT) {
+				ret = TIPO_FLOAT;
+			}
+			else { 
+				ret = TIPO_INT;
+			}
+		}
+		else if (t1 == TIPO_CHAR) {
+			ret = t2;
+		}
+		else {	// no deberia alcanzarse nunca
+			ret = TIPO_ERROR;
+		}
+	}
+	
+	return ret;
 }
 
 
@@ -311,12 +474,12 @@ void scanner() {
 
 void init_tipos() {
     TIPO_INIT = -1;
-    TIPO_VOID = DIR_TIPO_VOID;
-    TIPO_CHAR = DIR_TIPO_CHAR;
-    TIPO_INT = DIR_TIPO_INT;
-    TIPO_FLOAT = DIR_TIPO_FLOAT;
-    TIPO_ERROR = DIR_TIPO_ERROR;
-    TIPO_STRING = DIR_TIPO_ERROR + 1;
+    TIPO_VOID = en_tabla("void");
+    TIPO_CHAR = en_tabla("char");
+    TIPO_INT = en_tabla("int");
+    TIPO_FLOAT = en_tabla("float");
+    TIPO_ERROR = en_tabla("error");
+    TIPO_STRING = en_tabla("error") + 1;
     /*printf("\n%d=TIPO_INIT  %d=TIPO_VOID  %d=TIPO_CHAR  %d=TIPO_INT  %d=TIPO_FLOAT  %d=TIPO_ERROR  %d=TIPO_STRING\n\n", 
                     TIPO_INIT, TIPO_VOID, TIPO_CHAR, TIPO_INT, TIPO_FLOAT, TIPO_ERROR, TIPO_STRING);*/
 }
@@ -494,7 +657,7 @@ void especificador_declaracion(set folset, int ath_tipo) {
 
 }
 
-void definicion_funcion(set folset) {
+void definicion_funcion(set folset, int ath_tipo) {
     int check_return = checkreturn;
 
     if (sbol->codigo == CPAR_ABR) {
@@ -522,7 +685,7 @@ void definicion_funcion(set folset) {
     else
         error_handler(20);
 
-    proposicion_compuesta(folset);
+    proposicion_compuesta(folset, ath_tipo);
 
     if (strcmp("main", nbre_func) == 0) {
         check_return = 0;
@@ -610,7 +773,8 @@ void declaracion_parametro(set folset) {
 
 }
 
-void lista_declaraciones_init(set folset) {
+int lista_declaraciones_init(set folset, int ath_tipo){
+int bytes = 0;
     test(first[LISTA_DECLARACIONES_INIT],
             folset | first[DECLARADOR_INIT] | CCOMA | CIDENT, 57);
 
@@ -621,7 +785,7 @@ void lista_declaraciones_init(set folset) {
     } else
         error_handler(16);
 
-    declarador_init(folset | (CCOMA | CIDENT) | first[DECLARADOR_INIT]);
+   bytes +=  declarador_init(folset | (CCOMA | CIDENT) | first[DECLARADOR_INIT], ath_tipo);
     insertarEnTSVariable();
 
     while (sbol->codigo == CCOMA || sbol->codigo == CIDENT
@@ -641,9 +805,10 @@ void lista_declaraciones_init(set folset) {
         } else
             error_handler(16);
 
-        declarador_init(folset | (CCOMA | CIDENT) | first[DECLARADOR_INIT]);
+       bytes +=  declarador_init(folset | (CCOMA | CIDENT) | first[DECLARADOR_INIT], ath_tipo);
         insertarEnTSVariable();
     }
+return bytes;
 }
 
 void declaracion_variable(set folset, int ath_tipo) {
@@ -672,7 +837,7 @@ void declaracion_variable(set folset, int ath_tipo) {
 
 }
 
-void declarador_init(set folset, int ath_tipo) {
+int declarador_init(set folset, int ath_tipo) {
     int tieneAsig = 1;
     int bytes = 0;
 
@@ -733,7 +898,7 @@ void declarador_init(set folset, int ath_tipo) {
             if (sbol->codigo == CCONS_ENT) {
                 int tipo_cons = constante(
                         folset | CLLA_ABR | CLLA_CIE | CASIGNAC | CCOR_CIE
-                        | first[LISTA_INICIALIZADORES]);
+                        | first[LISTA_INICIALIZADORES], ath_tipo);
             } else {
                 tieneAsig = 0;
                 //error_handler(38);
@@ -752,7 +917,7 @@ void declarador_init(set folset, int ath_tipo) {
                 else
                     error_handler(23);
 
-                int ats_cant = lista_inicializadores(folset | CLLA_CIE);
+                int ats_cant = lista_inicializadores(folset | CLLA_CIE, ath_tipo);
 
                 if (sbol->codigo == CLLA_CIE)
                     scanner();
@@ -768,11 +933,13 @@ void declarador_init(set folset, int ath_tipo) {
     }
 
     test(folset, NADA, 59);
+
+return bytes;
 }
 
 int lista_inicializadores(set folset, int ath_tipo) {
     int ats_cant = 0; // cantidad de valores en la inicializacion del arreglo
-    int tipo_cons = constante(folset | CCOMA | first[CONSTANTE]);
+    int tipo_cons = constante(folset | CCOMA | first[CONSTANTE], ath_tipo);
 
     chequear_tipos(ath_tipo, tipo_cons, 81);
     ats_cant++;
@@ -853,13 +1020,13 @@ void proposicion_compuesta(set folset, int ath_tipo) {
 
     // hago pop de todo el nivel en la TS, seguido de pop en la TB
     pop_nivel();
-    s
+    
     test(folset, NADA, 61);
 
 }
 
 int lista_declaraciones(set folset) {
-
+int bytes = 0;
     bytes += declaracion(folset | first[DECLARACION]);
 
     while (sbol->codigo == CVOID || sbol->codigo == CCHAR
@@ -875,7 +1042,7 @@ int declaracion(set folset) {
     int bytes = 0;
     tipoDeRetornoDeclaracion = especificador_tipo(folset | first[LISTA_DECLARACIONES_INIT] | CPYCOMA);
 
-    bytes += lista_declaraciones_init(folset | CPYCOMA);
+    bytes += lista_declaraciones_init(folset | CPYCOMA, tipoDeRetornoDeclaracion);
 
     if (sbol->codigo == CPYCOMA)
         scanner();
@@ -1231,6 +1398,8 @@ int expresion(set folset) {
             int tipo2 = expresion(folset | first[EXPRESION_SIMPLE]);
 
             int tipo_oper = tipo_izq_ejec;
+            
+            int tipo_der_ejec = tipoSistEjec(tipo2);
             // Completo el tipo adeudado en el cast futuro
             if (tipo_der_ejec > tipo_izq_ejec) {
                 // el cast es significativo, casteo al tipo mayor
@@ -1292,7 +1461,7 @@ int expresion(set folset) {
     return ats_tipo;
 }
 
-void expresion_simple(set folset) {
+int expresion_simple(set folset) {
 
     if ((expresionActual == EXPRESION_VARIABLE) || (expresionActual == EXPRESION_ARREGLO)) {
         expresionActual = EXPRESION_OTRO;
@@ -1314,6 +1483,7 @@ void expresion_simple(set folset) {
         generarInvertir(tipoSistEjec(ats_tipo));
     }
 
+    int tipo_izq_ejec;
     while (sbol->codigo == CMAS || sbol->codigo == CMENOS || sbol->codigo == COR
             || (in(sbol->codigo, first[TERMINO]))) {
 
@@ -1323,7 +1493,7 @@ void expresion_simple(set folset) {
             operador = sbol->codigo;
             scanner();
 
-            int tipo_izq_ejec = tipoSistEjec(ats_tipo);
+            tipo_izq_ejec = tipoSistEjec(ats_tipo);
 
             // Cast futuro, reservo el lugar para el tipo destino del cast y luego lo lleno
             int dirCastFuturo = generarCastFuturo(tipo_izq_ejec);
@@ -1331,6 +1501,8 @@ void expresion_simple(set folset) {
         } else {
             error_handler(78);
         }
+        // Cast futuro, reservo el lugar para el tipo destino del cast y luego lo lleno
+		int dirCastFuturo = generarCastFuturo(tipo_izq_ejec);
         int ats_tipo2 = termino(folset, ats_tipo);
         int tipo_der_ejec = tipoSistEjec(ats_tipo2);
 
@@ -1395,12 +1567,8 @@ int termino(set folset, int ath_tipo) {
         // Cast futuro, reservo el lugar para el tipo destino del cast y luego lo lleno
         int dirCastFuturo = generarCastFuturo(tipo_izq_ejec);
 
-        int ats_tipo2 = factor(folset | CMULT | CDIV | CAND | first[FACTOR]);
+        int ats_tipo2 = factor(folset | CMULT | CDIV | CAND | first[FACTOR], ath_tipo);
 
-        // Cast futuro, reservo el lugar para el tipo destino del cast y luego lo lleno
-        int dirCastFuturo = generarCastFuturo(tipo_izq_ejec);
-
-        int ats_tipo2 = factor(followLocal, ats_tipo);
 
         int tipo_der_ejec = tipoSistEjec(ats_tipo2);
 
@@ -1441,7 +1609,7 @@ int termino(set folset, int ath_tipo) {
     return ats_tipo;
 }
 
-void factor(set folset, int ath_tipo) {
+int factor(set folset, int ath_tipo) {
     if ((expresionActual == EXPRESION_VARIABLE) || (expresionActual == EXPRESION_ARREGLO)) {
         expresionActual = EXPRESION_OTRO;
     }
@@ -1462,7 +1630,7 @@ void factor(set folset, int ath_tipo) {
                 case CLASPAR:
                 case CLASVAR:
                     ats_tipo = Tipo_Ident(token_actual);
-                    if (ats_tipo == DIR_TIPO_ARREGLO) {
+                    if (ats_tipo == en_tabla("array") ){
                         // sintetizo el tipo base del arreglo
                         ats_tipo = ts[en_tabla(token_actual)].ets->desc.part_var.arr.ptero_tipo_base;
                     }
@@ -1494,7 +1662,7 @@ void factor(set folset, int ath_tipo) {
                                 || sbol->codigo == CCONS_FLO
                                 || sbol->codigo == CCONS_CAR
                                 || sbol->codigo == CCONS_STR) {
-                            lista_expresiones(folset | CPAR_CIE);
+                            lista_expresiones(folset | CPAR_CIE,"");
                         }
                         if (sbol->codigo == CPAR_CIE) {
                             scanner();
@@ -1574,12 +1742,16 @@ void factor(set folset, int ath_tipo) {
     return ats_tipo;
 }
 
-void variable(set folset) {
+int variable(set folset, int ath_tipo) {
     test(first[VARIABLE], folset | CLLA_ABR | first[EXPRESION] | CLLA_CIE, 70);
     char ident_actual[TAM_LEXEMA];
+    int pos;
+    int ats_tipo = 99; // NO ES ERROR, PONER CONSTANTE
+    int desconocida = 0, esArreglo = 0, sinIndice = 1;
     strcpy(ident_actual, "");
     if (sbol->codigo == CIDENT) {
         if (en_tabla(sbol->lexema) == NIL) {
+            ats_tipo = TIPO_ERROR;
             error_handler(33);
             inf_id->clase = CLASVAR;
             inf_id->ptr_tipo = en_tabla("error");
@@ -1628,13 +1800,87 @@ void variable(set folset) {
                 scanner();
         }
     }
+    if (ats_tipo == 99) {
+        if (Tipo_Ident(ident_actual) == en_tabla("array") && Clase_Ident(ident_actual) == CLASVAR) { // no se puede usar esArreglo, porque en las llamadas a funcion, si es conocido no se setea
+            // sintetizo el tipo base
+            ats_tipo = ts[pos].ets->desc.part_var.arr.ptero_tipo_base;
+            //printf(">>> DEBUG >>> tipo rama A %d\n", ats_tipo);
+        } else if (Tipo_Ident(ident_actual) == en_tabla("array") && Clase_Ident(ident_actual) == CLASPAR) { // no se puede usar esArreglo, porque en las llamadas a funcion, si es conocido no se setea
+            // sintetizo el tipo base
+            ats_tipo = ts[pos].ets->desc.part_var.arr.ptero_tipo_base;
+            //printf(">>> DEBUG >>> tipo rama B %d\n", ats_tipo);
+        } else { // es una variable simple
+            ats_tipo = ts[pos].ets->ptr_tipo;
+            //printf(">>> DEBUG >>> tipo rama C %d\n", ats_tipo);
+        }
+    }
 
+    /*
+        if (expresionActual == EXPRESION_INIT) {
+                    if (desconocida) {
+                            expresionActual = EXPRESION_OTRO;
+                    }
+                    else {
+                            if (Tipo_Ident(lexema) == DIR_TIPO_ARREGLO) {	// no se puede usar esArreglo, porque en las llamadas a funcion, si es conocido no se setea
+                                    if (sinIndice) {
+                                            expresionActual = EXPRESION_ARREGLO;
+                                    }
+                                    else {
+                                            expresionActual = EXPRESION_VARIABLE;
+                                    }
+                            }
+                            else {
+                                    expresionActual = EXPRESION_VARIABLE;
+                            }
+                    }
+            }
+            else {
+                    expresionActual = EXPRESION_OTRO;
+            }
+     */
+
+    if (ats_tipo != TIPO_ERROR) {
+        int tipoVarEjec = tipoSistEjec(ats_tipo);
+        int tipoHerEjec = tipoSistEjec(ath_tipo);
+
+        if (ath_tipo == TIPO_INIT || tipoVarEjec == tipoHerEjec) {
+            P[lp++] = CRVL;
+            P[lp++] = ts[pos].ets->desc.nivel;
+            P[lp++] = ts[pos].ets->desc.despl;
+            P[lp++] = tipoVarEjec;
+            fprintf(code, "CRVL\t%d\t%d\t%d\n", ts[pos].ets->desc.nivel, ts[pos].ets->desc.despl, tipoVarEjec);
+        } else if (tipoVarEjec < tipoHerEjec) {
+            P[lp++] = CRVL;
+            P[lp++] = ts[pos].ets->desc.nivel;
+            P[lp++] = ts[pos].ets->desc.despl;
+            P[lp++] = tipoVarEjec;
+            fprintf(code, "CRVL\t%d\t%d\t%d\n", ts[pos].ets->desc.nivel, ts[pos].ets->desc.despl, tipoVarEjec);
+            generarCast(tipoVarEjec, tipoHerEjec);
+        } else if (tipoVarEjec > tipoHerEjec) {
+            generarCast(tipoHerEjec, tipoVarEjec);
+            P[lp++] = CRVL;
+            P[lp++] = ts[pos].ets->desc.nivel;
+            P[lp++] = ts[pos].ets->desc.despl;
+            P[lp++] = tipoVarEjec;
+            fprintf(code, "CRVL\t%d\t%d\t%d\n", ts[pos].ets->desc.nivel, ts[pos].ets->desc.despl, tipoVarEjec);
+        }
+
+        variableNivel = ts[pos].ets->desc.nivel;
+        variableDesplaz = ts[pos].ets->desc.despl;
+    } else {
+        variableNivel = -1;
+        variableDesplaz = -1;
+    }
     test(folset, NADA, 71);
+
+    return ats_tipo;
 }
 
 void llamada_funcion(set folset) {
+	char lexema[TAM_LEXEMA];
 
     if (sbol->codigo == CIDENT) {
+	strcpy(lexema, sbol->lexema);
         scanner();
     } else {
         error_handler(16);
@@ -1650,7 +1896,7 @@ void llamada_funcion(set folset) {
             || sbol->codigo == CPAR_ABR || sbol->codigo == CNEG
             || sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_FLO
             || sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_STR) {
-        lista_expresiones(folset | CPAR_CIE);
+        lista_expresiones(folset | CPAR_CIE, lexema);
     }
 
     if (sbol->codigo == CPAR_CIE) {
@@ -1662,9 +1908,19 @@ void llamada_funcion(set folset) {
     test(folset, NADA, 72);
 }
 
-void lista_expresiones(set folset) {
+void lista_expresiones(set folset, char lexema[]) {
     es_parametro = 1;
-    expresion(folset | CCOMA);
+
+    int tipoEts = Tipo_Ident(lexema);
+    int tipo_param;
+    if (tipoEts == en_tabla("array")) {
+        tipo_param = ts[en_tabla(lexema)].ets->desc.part_var.arr.ptero_tipo_base;
+    } else {
+        tipo_param = ts[en_tabla(lexema)].ets->ptr_tipo;
+    }
+
+    int ats_tipo = expresion(folset | CCOMA);
+    chequear_tipos(tipo_param, ats_tipo, 91);
 
     while (sbol->codigo == CCOMA || (in(sbol->codigo, first[EXPRESION]))) {
         if (sbol->codigo == CCOMA) {
@@ -1672,7 +1928,8 @@ void lista_expresiones(set folset) {
         } else {
             error_handler(75);
         }
-        expresion(folset | CCOMA);
+        ats_tipo = expresion(folset | CCOMA);
+        chequear_tipos(tipo_param, ats_tipo, 91);
     }
     es_parametro = 0;
 }
