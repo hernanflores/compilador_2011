@@ -5,7 +5,7 @@ CFLAGS = -g
 ucc: $(obj)
 	gcc -o $@ $(obj) -lm
 
-parser.o: parser.c codigos.h var_globales.h
+parser.o: parser.c codigos.h var_globales.h  sistejec.c
 
 lex.yy.o: lex.yy.c codigos.h var_globales.h
 

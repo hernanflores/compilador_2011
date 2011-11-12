@@ -14,7 +14,7 @@ EXTERNA token token1;
 
 
 
-
+EXTERNA int hayError;
 
 
 
