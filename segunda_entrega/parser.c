@@ -1994,8 +1994,8 @@ int constante(set folset, int ath_tipo) {
             break;
         case CCONS_CAR:
             ats_tipo = TIPO_CHAR;
-            strcpy(const_char, sbol->lexema);
-            //const_char = sbol->lexema;
+            //strcpy(const_char, sbol->lexema);
+            const_char = sbol->lexema[1];
             scanner();
             break;
         default:
