@@ -609,6 +609,10 @@ int main(int argc, char *argv[]) {
 /********* funciones del parser ***********/
 
 void unidad_traduccion(set folset) {
+    
+    P[lp++]= INPP;
+    fprintf(code,"INPP\n");
+    
     test(first[DECLARACIONES] | folset, folset, 50);
     while (sbol->codigo == CVOID || sbol->codigo == CCHAR
             || sbol->codigo == CINT || sbol->codigo == CFLOAT)
@@ -705,6 +709,12 @@ void definicion_funcion(set folset, int ath_tipo) {
     insertarTS();
     pushTB(); //nueevo bloque de la funcion
     pushie_func = 1;
+    
+    nivel++;
+
+    P[lp++] = ENBL;
+    P[lp++] = nivel;
+    fprintf(code, "ENBL\t%d\n", nivel);
 
     if (sbol->codigo == CVOID || sbol->codigo == CCHAR || sbol->codigo == CINT
             || sbol->codigo == CFLOAT || sbol->codigo == CIDENT) {
@@ -1525,7 +1535,7 @@ int expresion_simple(set folset) {
             tipo_izq_ejec = tipoSistEjec(ats_tipo);
 
             // Cast futuro, reservo el lugar para el tipo destino del cast y luego lo lleno
-            int dirCastFuturo = generarCastFuturo(tipo_izq_ejec);
+            //int dirCastFuturo = generarCastFuturo(tipo_izq_ejec);
 
         } else {
             error_handler(78);
@@ -2113,7 +2123,21 @@ void insertarEnTSVariable() {
             inf_id->ptr_tipo = tipo_id;
             inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte;
         }
+        
+        inf_id->desc.nivel = nivel;
+	inf_id->desc.despl = desplazamiento;
+        
         insertarTS();
+        
+        if (inicializacionDeclaracion && inicializacionDeclaracionTipo != TIPO_INIT) {
+			generarAlmacenar(nivel, desplazamiento, inicializacionDeclaracionTipo);
+			generarPop(inicializacionDeclaracionTipo);
+			inicializacionDeclaracion = 0;
+			inicializacionDeclaracionTipo = TIPO_INIT;
+		}
+		
+	incDesplaz(tipoDeRetornoDeclaracion);
+                
     }
 }
 
@@ -2130,4 +2154,16 @@ void insertarFuncionEnTS() {
         //tipoDeRetornoDeclaracionFuncion = tipoDeRetornoDeclaracion;
         //strcpy(identificadorDeclaracion, STR_VACIO);
     }
+}
+
+void incDesplaz(int tipo) {
+	if (tipo == TIPO_CHAR) {
+		desplazamiento += TAMANIO_CHAR;
+	}
+	else if (tipo == TIPO_INT) {
+		desplazamiento += TAMANIO_INT;
+	}
+	else if (tipo == TIPO_FLOAT) {
+		desplazamiento += TAMANIO_FLOAT;
+	}
 }

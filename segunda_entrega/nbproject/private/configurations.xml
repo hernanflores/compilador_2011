@@ -27,18 +27,18 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/hernan/Downloads/lote1/p1.c</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/software/workspace/compilador_2011/segunda_entrega/lote1/p1.c</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/software/workspace/compilador_2011//primer_entrega/LotesdePrueba/lotesOk/prog1se.c</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/software/workspace/compilador_2011/primer_entrega/LotesdePrueba/lotesOk/prog1se.c</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/prog1se.c</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -c "/home/ale/prog1se.c"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH} -c /home/ale/prog1se.c"</runcommandpicklistitem>
-          <runcommandpicklistitem>${OUTPUT_PATH} -c /home/ale/prog1se.c</runcommandpicklistitem>
           <runcommandpicklistitem>${OUTPUT_PATH} -c /home/ale/prog1se.o</runcommandpicklistitem>
           <runcommandpicklistitem>${OUTPUT_PATH} -e /home/ale/prog1se.o</runcommandpicklistitem>
+          <runcommandpicklistitem>${OUTPUT_PATH} -c /home/ale/prog1se.c</runcommandpicklistitem>
+          <runcommandpicklistitem>${OUTPUT_PATH} -c /home/ale/correccion/p1e.c</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>${OUTPUT_PATH} -e /home/ale/prog1se.o</runcommand>
+        <runcommand>${OUTPUT_PATH} -c /home/ale/correccion/p1e.c</runcommand>
         <rundir>.</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>

@@ -5,31 +5,18 @@
       <df name="correccion">
         <df name="lotes_ejecutables">
           <in>p1e.c</in>
-          <in>p1e.code</in>
           <in>p2e.c</in>
-          <in>p2e.code</in>
           <in>p3e.c</in>
-          <in>p3e.code</in>
           <in>p4e.c</in>
-          <in>p4e.code</in>
         </df>
         <df name="lotes_error">
           <in>p1ch.c</in>
-          <in>p1ch.code</in>
           <in>p2ch.c</in>
-          <in>p2ch.code</in>
           <in>p3ch.c</in>
-          <in>p3ch.code</in>
           <in>p4ch.c</in>
-          <in>p4ch.code</in>
           <in>p5ch.c</in>
-          <in>p5ch.code</in>
           <in>p6ch.c</in>
-          <in>p6ch.code</in>
         </df>
-        <in>correccion.txt</in>
-        <in>lotes1.renombrar.tgz</in>
-        <in>lotes_ejecutables.renombrar.tgz</in>
         <in>p1ch.c</in>
         <in>p1e.c</in>
         <in>p2ch.c</in>
@@ -40,7 +27,6 @@
         <in>p4e.c</in>
         <in>p5ch.c</in>
         <in>p6ch.c</in>
-        <in>su-salida.err</in>
       </df>
       <df name="lote1">
         <in>p1.c</in>

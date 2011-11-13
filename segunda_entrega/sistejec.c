@@ -8,7 +8,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 
-# include "soporte_ejecucion.h"  // Definiciones y Constantes del Sistema de EjecuciÂ¢n
+# include "soporte_ejecucion.h"  // Definiciones y Constantes del Sistema de Ejecuci¢n
 
 
 int tc = sizeof(char); //tamano del char
@@ -25,13 +25,13 @@ int rpi;
 /* ---------------- ZONA PARA EL PROGRAMA MOPA ------------------- */
 
 float P[TAM_PROG];
-int lp=0;           // prÂ¢ximo libre del programa
+int lp=0;           // pr¢ximo libre del programa
 
 
 /* ---------------- ZONA PARA LAS CONSTANTAS ------------------- */
 
 char C[TAM_CTES];
-int lc=0;           // prÂ¢ximo libre de las constantes
+int lc=0;           // pr¢ximo libre de las constantes
 
 /* ---------------- ZONA PARA EL VECTOR DISPLAY ------------------- */
 		
@@ -93,7 +93,7 @@ void interprete(){
   while (P[rpi]!= PARAR) {
 
     if (ls >= TAM_STACK){
-      printf("\nError: Overflow del Stack de EjecuciÂ¢n\n");
+      printf("\nError: Overflow del Stack de Ejecuci¢n\n");
       exit(1);
     }
    
@@ -149,7 +149,7 @@ void interprete(){
        
 	  for ( i = 0; i < tipo; i++) {
 	      if (ls >= TAM_STACK){
-		printf("\nError: Overflow del Stack de EjecuciÂ¢n\n");
+		printf("\nError: Overflow del Stack de Ejecuci¢n\n");
 		exit(1);
 	      }
 	      S[ls] = S[ D[nivel] + despl + i ];
@@ -496,7 +496,7 @@ void interprete(){
 	  
 	  for ( i = 0; i < tipo; i++) {
 	      if (ls >= TAM_STACK){
-		printf("\nError: Overflow del Stack de EjecuciÂ¢n\n");
+		printf("\nError: Overflow del Stack de Ejecuci¢n\n");
 		exit(1);
 	      }
 	      S[ D[nivel] + despl + i ] = S[ls];
@@ -569,7 +569,7 @@ void interprete(){
 	switch ((int)P[rpi++]) {
 	  case 0: 
             //scanf("%c", &S[ls]);						// NO FUNCA
-            S[ls] = getchar(); S[ls] = getchar();		// ESTO SI, PERO DEBE ESTAR 2 VECES Â¿WTF?
+            S[ls] = getchar(); S[ls] = getchar();		// ESTO SI, PERO DEBE ESTAR 2 VECES ¿WTF?
 	    ls += tc;
           break;
 	  case 1: 
@@ -614,10 +614,8 @@ void interprete(){
 	break;
 
       case BIFS: //BIFS desp
-	//rpi++;
-	//rpi += (int) P[rpi]; rpi++;
-        rpi++;
-        rpi += (int) P[rpi] + 1;
+	rpi++;
+	rpi += (int) P[rpi]; rpi++;
         break;
 	
       case BIFF: //BIFF tipo desp
@@ -629,15 +627,9 @@ void interprete(){
             ls -= tc;   
           break;
 	  case 1: 
-/*
 	    if((* (int *) &S[ls-te]) == 0) rpi += (int) P[rpi];
 	    rpi++;
             ls -= te;
-*/
-              rpi++;
-              if((* (int *) &S[ls-te]) == 0) {    rpi += (int) P[rpi] + 1;}
-              else rpi++;
-              ls -= te;
 	    break;
           case 2: 
 	    if((* (float *) &S[ls-tf]) == 0) rpi += (int) P[rpi];
@@ -668,13 +660,14 @@ void interprete(){
        //
     }   // del if ls < TAM_STACK
     else {
-	 printf("\nError: Overflow del Stack de EjecuciÂ¢n\n");
+	 printf("\nError: Overflow del Stack de Ejecuci¢n\n");
 	 exit(1);
     }
  
   } // del while
  
 } // de la funcion interprete
+
 
 
 
