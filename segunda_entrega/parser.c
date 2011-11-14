@@ -1998,6 +1998,12 @@ int constante(set folset, int ath_tipo) {
             const_char = sbol->lexema[1];
             scanner();
             break;
+        case CCONS_STR:
+            ats_tipo = TIPO_STRING;
+            //strcpy(const_char, sbol->lexema);
+            //const_char = sbol->lexema[1];
+            scanner();
+            break;
         default:
             ats_tipo = TIPO_ERROR;
             error_handler(38);
