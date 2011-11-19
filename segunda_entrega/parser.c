@@ -415,7 +415,8 @@ int chequear_tipos(int t1, int t2, int ne) {
     int ret;
 
     if (t1 == TIPO_CHAR) {
-        if (t2 != TIPO_CHAR) {
+        //VALIDAR
+        if (t2 != TIPO_CHAR && (t2 != TIPO_INT)) {
             error_handler(ne);
             ret = TIPO_ERROR;
         } else {
@@ -938,10 +939,11 @@ int declarador_init(set folset, int ath_tipo) {
             scanner();
             es_arreglo = 1;
             esArregloDeclaracion = 1;
-            if (sbol->codigo == CCONS_ENT) {
+            if (sbol->codigo == CCONS_ENT || sbol->codigo == CCONS_CAR || sbol->codigo == CCONS_FLO || sbol->codigo == CCONS_STR) {
                 int tipo_cons = constante(
                         folset | CLLA_ABR | CLLA_CIE | CASIGNAC | CCOR_CIE
                         | first[LISTA_INICIALIZADORES], ath_tipo);
+				tipo_cons = chequear_tipos(ath_tipo, tipo_cons, 82);
                 inf_id->desc.part_var.arr.ptero_tipo_base = ath_tipo;
             
                 inf_id->ptr_tipo = en_tabla("array");
@@ -967,8 +969,13 @@ int declarador_init(set folset, int ath_tipo) {
 
                 int ats_cant = lista_inicializadores(folset | CLLA_CIE, ath_tipo);
                 
-                if (ats_cant>0) 
+                if(ats_cant != tam_arreglo){
+                    error_handler(84);
+                }
+                
+                if (ats_cant>0) {
                     tam_arreglo = ats_cant;
+                }
 
                 if (sbol->codigo == CLLA_CIE)
                     scanner();
@@ -2245,21 +2252,21 @@ void insertarEnTSVariable() {
             inf_id->ptr_tipo = tipo_id;
             inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte;
         }
-        
+
         inf_id->desc.nivel = nivel;
-	inf_id->desc.despl = desplazamiento;
-        
+        inf_id->desc.despl = desplazamiento;
+
         insertarTS();
-        
+
         if (inicializacionDeclaracion && inicializacionDeclaracionTipo != TIPO_INIT) {
-			generarAlmacenar(nivel, desplazamiento, inicializacionDeclaracionTipo);
-			generarPop(inicializacionDeclaracionTipo);
-			inicializacionDeclaracion = 0;
-			inicializacionDeclaracionTipo = TIPO_INIT;
-		}
-		
-	incDesplaz(tipoDeRetornoDeclaracion);
-                
+            generarAlmacenar(nivel, desplazamiento, inicializacionDeclaracionTipo);
+            generarPop(inicializacionDeclaracionTipo);
+            inicializacionDeclaracion = 0;
+            inicializacionDeclaracionTipo = TIPO_INIT;
+        }
+
+        incDesplaz(tipoDeRetornoDeclaracion);
+
     }
 }
 
@@ -2279,13 +2286,11 @@ void insertarFuncionEnTS() {
 }
 
 void incDesplaz(int tipo) {
-	if (tipo == TIPO_CHAR) {
-		desplazamiento += TAMANIO_CHAR;
-	}
-	else if (tipo == TIPO_INT) {
-		desplazamiento += TAMANIO_INT;
-	}
-	else if (tipo == TIPO_FLOAT) {
-		desplazamiento += TAMANIO_FLOAT;
-	}
+    if (tipo == TIPO_CHAR) {
+        desplazamiento += TAMANIO_CHAR;
+    } else if (tipo == TIPO_INT) {
+        desplazamiento += TAMANIO_INT;
+    } else if (tipo == TIPO_FLOAT) {
+        desplazamiento += TAMANIO_FLOAT;
+    }
 }
