@@ -1686,7 +1686,7 @@ int factor(set folset, int ath_tipo) {
                         ats_tipo = ts[en_tabla(token_actual)].ets->desc.part_var.arr.ptero_tipo_base;
                     }
 
-                    ats_tipo = variable(folset | CPAR_CIE, ath_tipo);
+                    variable(folset | CPAR_CIE, ath_tipo);
                     break;
 
 
@@ -1810,9 +1810,11 @@ int variable(set folset, int ath_tipo) {
              si, siendo la variable un arreglo, corresponde o no
              verificar la presencia del subindice */
             if (sbol->codigo == CCOR_ABR) {
+                sinIndice = 0;
                 inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
                 inf_id->ptr_tipo = en_tabla("array");
             }
+            desconocida =1;
             //insertarTS();
             insertarEnTSVariable();
         }
@@ -1820,6 +1822,8 @@ int variable(set folset, int ath_tipo) {
         scanner();
     } else {
         error_handler(16);
+        desconocida =1;
+        strcpy(ident_actual, "");
     }
 
     /* el alumno debera verificar con una consulta a TS
@@ -1832,6 +1836,7 @@ int variable(set folset, int ath_tipo) {
                     && (sbol->codigo == CCOMA || sbol->codigo == CPAR_CIE)) {
                 error_handler(43);
             }
+            sinIndice = 0;
             scanner();
             expresion(folset | CCOR_CIE);
             if (sbol->codigo == CCOR_CIE)
@@ -1868,13 +1873,13 @@ int variable(set folset, int ath_tipo) {
         }
     }
 
-    /*
+    
         if (expresionActual == EXPRESION_INIT) {
                     if (desconocida) {
                             expresionActual = EXPRESION_OTRO;
                     }
                     else {
-                            if (Tipo_Ident(lexema) == DIR_TIPO_ARREGLO) {	// no se puede usar esArreglo, porque en las llamadas a funcion, si es conocido no se setea
+                            if (Tipo_Ident(ident_actual) == en_tabla("array")) {	// no se puede usar esArreglo, porque en las llamadas a funcion, si es conocido no se setea
                                     if (sinIndice) {
                                             expresionActual = EXPRESION_ARREGLO;
                                     }
@@ -1890,7 +1895,7 @@ int variable(set folset, int ath_tipo) {
             else {
                     expresionActual = EXPRESION_OTRO;
             }
-     */
+     
 
     if (ats_tipo != TIPO_ERROR) {
         int tipoVarEjec = tipoSistEjec(ats_tipo);
@@ -1931,14 +1936,19 @@ int variable(set folset, int ath_tipo) {
 
 void llamada_funcion(set folset) {
     char lexema[TAM_LEXEMA];
+    int desconocida=0;
 
     if (sbol->codigo == CIDENT) {
         strcpy(lexema, sbol->lexema);
+        if (en_tabla(lexema) == NIL) {
+                error_handler(33);
+		desconocida=1;
+	}
         scanner();
     } else {
         strcpy(lexema, "");
         error_handler(16);
-        //desconocida=0;
+        desconocida=1;
     }
 
     if (sbol->codigo == CPAR_ABR) {
@@ -1965,6 +1975,7 @@ void llamada_funcion(set folset) {
 
 void lista_expresiones(set folset, char lexema[]) {
    int cont_params = 0;
+    es_parametro = 1;
 	
 	tipo_inf_res *params = NULL;
 	int cant_params_formales = 0, cant_params_formales_aux = 0;
@@ -2074,6 +2085,7 @@ void lista_expresiones(set folset, char lexema[]) {
 	if ((cant_params_formales != cont_params) && (pos != NIL)) {
 		error_handler(90);
 	}
+         es_parametro = 0;
 }
 
 
