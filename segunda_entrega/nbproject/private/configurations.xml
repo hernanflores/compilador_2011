@@ -20,25 +20,24 @@
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
       </dbx_gdbdebugger>
       <gizmo_options version="3">
-        <configurationname>GizmoSimple</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
         <engine>gdb</engine>
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/software/workspace/compilador_2011/segunda_entrega/lote1/p1.c</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/software/workspace/compilador_2011//primer_entrega/LotesdePrueba/lotesOk/prog1se.c</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/software/workspace/compilador_2011/primer_entrega/LotesdePrueba/lotesOk/prog1se.c</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/ale/prog1se.c</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -c "/home/ale/prog1se.c"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH} -c /home/ale/prog1se.c"</runcommandpicklistitem>
           <runcommandpicklistitem>${OUTPUT_PATH} -c /home/ale/prog1se.o</runcommandpicklistitem>
           <runcommandpicklistitem>${OUTPUT_PATH} -e /home/ale/prog1se.o</runcommandpicklistitem>
           <runcommandpicklistitem>${OUTPUT_PATH} -c /home/ale/prog1se.c</runcommandpicklistitem>
           <runcommandpicklistitem>${OUTPUT_PATH} -c /home/ale/correccion/p1e.c</runcommandpicklistitem>
+          <runcommandpicklistitem>${OUTPUT_PATH} -c /home/hernan/rec3/</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -c /home/hernan/rec3/p6ch.c</runcommandpicklistitem>
+          <runcommandpicklistitem>${OUTPUT_PATH} -c /home/hernan/rec3/p6ch.c</runcommandpicklistitem>
+          <runcommandpicklistitem>${OUTPUT_PATH} -c /home/hernan/rec3/p2ch.c</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>${OUTPUT_PATH} -c /home/ale/correccion/p1e.c</runcommand>
+        <runcommand>${OUTPUT_PATH} -c /home/hernan/rec3/p2ch.c</runcommand>
         <rundir>.</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>
