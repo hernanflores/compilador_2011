@@ -1239,6 +1239,7 @@ void proposicion_seleccion(set folset, int ath_tipo) {
         scanner();
 
         proposicion(folset, ath_tipo);
+        P[dirFin] = lp - dirFin - 1;
     } else {
         // no hay else, si la condicion no se cumple debe saltar al final
         P[dirElse] = lp - dirElse - 1;
