@@ -1990,7 +1990,7 @@ void lista_expresiones(set folset, char lexema[]) {
 		cant_params_formales = ts[pos].ets->desc.part_var.sub.cant_par;
 		cant_params_formales_aux = cant_params_formales;
 		if (cant_params_formales_aux > 0) {
-			hayMasParamsFormales = 0;;
+			hayMasParamsFormales = 1;
 			tipo_param_formal = params->ptero_tipo;
 			pasaje_param_formal = params->tipo_pje;
 			tipo_base_param_formal = params->ptr_tipo_base;
