@@ -173,7 +173,7 @@ int variableDesplaz = -1;
 
 //revisa si ya hice push de nivel
 int pushie_func = 0;
-tipo_inf_res *ptr_inf_res;
+tipo_inf_res **ptr_inf_res;
 int *ptr_cant_params;
 
 //chequeo por nombre de funcion main
@@ -703,9 +703,9 @@ void definicion_funcion(set folset, int ath_tipo) {
         error_handler(19);
 
     //Revisar esta inicializacion
-    ptr_inf_res = &(inf_id->desc.part_var.sub.ptr_inf_res);
-    ptr_cant_params = &(inf_id->desc.part_var.sub.cant_par);
-    // ptr_inf_res = NULL;
+    ptr_inf_res   = &(inf_id ->desc.part_var.sub.ptr_inf_res);
+    ptr_cant_params = &(inf_id ->desc.part_var.sub.cant_par);
+    *ptr_inf_res = NULL;
     (*ptr_cant_params) = 0;
     insertarTS();
     pushTB(); //nueevo bloque de la funcion
@@ -760,19 +760,18 @@ void declaracion_parametro(set folset) {
     //	test(first[DECLARACION_PARAMETRO],
     //			folset | CAMPER | CIDENT | CLLA_ABR | CLLA_CIE, 55);
     tipoParam = especificador_tipo(folset | CAMPER | CIDENT | CLLA_ABR | CLLA_CIE);
-    //int es_arreglo = 0;
+    es_arreglo = 0;
 
-    ptr_inf_res = (tipo_inf_res *) calloc(1, sizeof (tipo_inf_res));
-    if (ptr_inf_res == NULL) {
+    *ptr_inf_res = (tipo_inf_res *)calloc(1, sizeof(tipo_inf_res));
+    if (*ptr_inf_res == NULL){
         error_handler(10);
         exit(1);
     }
-    if (sbol->codigo == CAMPER) {
-
-        ptr_inf_res->tipo_pje = 'r';
+    if (sbol->codigo == CAMPER){
+        (*ptr_inf_res) -> tipo_pje = 'r';
         scanner();
-    } else {
-        ptr_inf_res->tipo_pje = 'v';
+    }else{
+        (*ptr_inf_res) ->tipo_pje = 'v';
     }
 
     if (sbol->codigo == CIDENT) {
@@ -782,10 +781,10 @@ void declaracion_parametro(set folset) {
         error_handler(16);
 
     inf_id->clase = CLASPAR;
-    ptr_inf_res->ptero_tipo = inf_id->ptr_tipo;
+    //ptr_inf_res->ptero_tipo = inf_id->ptr_tipo;
     if (sbol->codigo == CCOR_ABR) {
         //controla que no ocurra un parametro como &ident[]
-        if (ptr_inf_res->tipo_pje != 'r') {
+        if ((*ptr_inf_res)->tipo_pje != 'r') {
             scanner();
             if (sbol->codigo == CCOR_CIE) {
                 scanner();
@@ -795,15 +794,23 @@ void declaracion_parametro(set folset) {
             inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
             inf_id->ptr_tipo = en_tabla("array");
             inf_id->desc.part_var.arr.cant_elem = 0;
+            es_arreglo = 1;
         } else {
             //printf("no se permite pasaje por referncia de un arreglo");
             error_handler(42);
         }
     }
-    //ptr_inf_res= &ptr_inf_res->ptr_sig;
-    ptr_inf_res = ptr_inf_res->ptr_sig;
+    (*ptr_inf_res)->ptero_tipo = inf_id->ptr_tipo;
+    (*ptr_inf_res)->arreglo = es_arreglo;
+    if (es_arreglo) {
+        (*ptr_inf_res)->ptr_tipo_base = inf_id->desc.part_var.arr.ptero_tipo_base;
+    } else {
+        (*ptr_inf_res)->ptr_tipo_base = NIL;
+    }
+    ptr_inf_res= &((*ptr_inf_res)->ptr_sig);
+    
     (*ptr_cant_params)++;
-    ptr_inf_res = NULL;
+    (*ptr_inf_res) = NULL;
     //insertarTS();
     insertarEnTSVariable();
     test(folset, NADA, 56);
@@ -920,7 +927,7 @@ int declarador_init(set folset, int ath_tipo) {
 
 
             tipo_cons = chequear_tipos(ath_tipo, tipo_cons, 82);
-
+            
             esArregloDeclaracion = 0;
             inicializacionDeclaracion = 1;
             inicializacionDeclaracionTipo = tipoSistEjec(tipo_cons);
@@ -936,12 +943,16 @@ int declarador_init(set folset, int ath_tipo) {
                 int tipo_cons = constante(
                         folset | CLLA_ABR | CLLA_CIE | CASIGNAC | CCOR_CIE
                         | first[LISTA_INICIALIZADORES], ath_tipo);
-                //VALIDAR
-                tipo_cons = chequear_tipos(ath_tipo, tipo_cons, 82);
+				tipo_cons = chequear_tipos(ath_tipo, tipo_cons, 82);
+                inf_id->desc.part_var.arr.ptero_tipo_base = ath_tipo;
+            
+                inf_id->ptr_tipo = en_tabla("array");
+                inf_id->desc.part_var.arr.cant_elem = tipo_cons;
             } else {
                 tieneAsig = 0;
                 //error_handler(38);
             }
+            
             if (sbol->codigo == CCOR_CIE) {
                 scanner();
                 tam_arreglo = const_int;
@@ -1806,9 +1817,11 @@ int variable(set folset, int ath_tipo) {
              si, siendo la variable un arreglo, corresponde o no
              verificar la presencia del subindice */
             if (sbol->codigo == CCOR_ABR) {
+                sinIndice = 0;
                 inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
                 inf_id->ptr_tipo = en_tabla("array");
             }
+            desconocida =1;
             //insertarTS();
             insertarEnTSVariable();
         }
@@ -1816,6 +1829,8 @@ int variable(set folset, int ath_tipo) {
         scanner();
     } else {
         error_handler(16);
+        desconocida =1;
+        strcpy(ident_actual, "");
     }
 
     /* el alumno debera verificar con una consulta a TS
@@ -1828,6 +1843,7 @@ int variable(set folset, int ath_tipo) {
                     && (sbol->codigo == CCOMA || sbol->codigo == CPAR_CIE)) {
                 error_handler(43);
             }
+            sinIndice = 0;
             scanner();
             expresion(folset | CCOR_CIE);
             if (sbol->codigo == CCOR_CIE)
@@ -1864,13 +1880,13 @@ int variable(set folset, int ath_tipo) {
         }
     }
 
-    /*
+    
         if (expresionActual == EXPRESION_INIT) {
                     if (desconocida) {
                             expresionActual = EXPRESION_OTRO;
                     }
                     else {
-                            if (Tipo_Ident(lexema) == DIR_TIPO_ARREGLO) {	// no se puede usar esArreglo, porque en las llamadas a funcion, si es conocido no se setea
+                            if (Tipo_Ident(ident_actual) == en_tabla("array")) {	// no se puede usar esArreglo, porque en las llamadas a funcion, si es conocido no se setea
                                     if (sinIndice) {
                                             expresionActual = EXPRESION_ARREGLO;
                                     }
@@ -1886,7 +1902,7 @@ int variable(set folset, int ath_tipo) {
             else {
                     expresionActual = EXPRESION_OTRO;
             }
-     */
+     
 
     if (ats_tipo != TIPO_ERROR) {
         int tipoVarEjec = tipoSistEjec(ats_tipo);
@@ -1927,12 +1943,19 @@ int variable(set folset, int ath_tipo) {
 
 void llamada_funcion(set folset) {
     char lexema[TAM_LEXEMA];
+    int desconocida=0;
 
     if (sbol->codigo == CIDENT) {
         strcpy(lexema, sbol->lexema);
+        if (en_tabla(lexema) == NIL) {
+                error_handler(33);
+		desconocida=1;
+	}
         scanner();
     } else {
+        strcpy(lexema, "");
         error_handler(16);
+        desconocida=1;
     }
 
     if (sbol->codigo == CPAR_ABR) {
@@ -1958,18 +1981,64 @@ void llamada_funcion(set folset) {
 }
 
 void lista_expresiones(set folset, char lexema[]) {
+   int cont_params = 0;
     es_parametro = 1;
-
-    int tipoEts = Tipo_Ident(lexema);
-    int tipo_param;
-    if (tipoEts == en_tabla("array")) {
-        tipo_param = ts[en_tabla(lexema)].ets->desc.part_var.arr.ptero_tipo_base;
-    } else {
-        tipo_param = ts[en_tabla(lexema)].ets->ptr_tipo;
-    }
-
+	
+	tipo_inf_res *params = NULL;
+	int cant_params_formales = 0, cant_params_formales_aux = 0;
+	int pos = en_tabla(lexema);
+	int tipo_param_formal;
+	int tipo_base_param_formal;
+	char pasaje_param_formal;
+	int param_es_arreglo;
+	int hayMasParamsFormales = 0;
+	if (pos != NIL) {
+		params = ts[pos].ets->desc.part_var.sub.ptr_inf_res;
+		cant_params_formales = ts[pos].ets->desc.part_var.sub.cant_par;
+		cant_params_formales_aux = cant_params_formales;
+		if (cant_params_formales_aux > 0) {
+			hayMasParamsFormales = 1;
+			tipo_param_formal = params->ptero_tipo;
+			pasaje_param_formal = params->tipo_pje;
+			tipo_base_param_formal = params->ptr_tipo_base;
+			param_es_arreglo = params->arreglo;
+		}
+	}
+    expresionActual = EXPRESION_INIT;
     int ats_tipo = expresion(folset | CCOMA);
-    chequear_tipos(tipo_param, ats_tipo, 91);
+    cont_params++;
+    
+    //chequear_tipos(tipo_param, ats_tipo, 91);
+    
+    if (pos != NIL && hayMasParamsFormales) {
+		if (tipo_param_formal == en_tabla("array")) {
+			if (expresionActual != EXPRESION_ARREGLO) {	// estos IFs deben estar anidados !!! (no combinar la condicion)
+				error_handler(93);
+			}
+		}
+		else {
+			if (expresionActual == EXPRESION_ARREGLO) {
+				error_handler(91);
+			}
+			else {
+				if (param_es_arreglo) {
+					chequear_tipos(tipo_base_param_formal, ats_tipo, 91);
+					//printf(">>> DEBUG >>> cheq 1 tipo param formal %d -- tipo param actual %d\n", tipo_base_param_formal, ats_tipo);
+				}
+				else {
+					chequear_tipos(tipo_param_formal, ats_tipo, 91);
+					//printf(">>> DEBUG >>> cheq 2 tipo param formal %d -- tipo param actual %d\n", tipo_param_formal, ats_tipo);
+				}
+			}
+			
+			if ((pasaje_param_formal == 'r') && (expresionActual != EXPRESION_VARIABLE)) {
+				error_handler(92);
+			}
+		}
+	}
+	expresionActual = EXPRESION_FIN;
+	cant_params_formales_aux--;
+	hayMasParamsFormales = cant_params_formales_aux > 0;
 
     while (sbol->codigo == CCOMA || (in(sbol->codigo, first[EXPRESION]))) {
         if (sbol->codigo == CCOMA) {
@@ -1977,11 +2046,56 @@ void lista_expresiones(set folset, char lexema[]) {
         } else {
             error_handler(75);
         }
+        
+        if (pos != NIL && hayMasParamsFormales) {
+			params = params->ptr_sig;
+			tipo_param_formal = params->ptero_tipo;
+			pasaje_param_formal = params->tipo_pje;
+			tipo_base_param_formal = params->ptr_tipo_base;
+			param_es_arreglo = params->arreglo;
+		}
+		
+		expresionActual = EXPRESION_INIT;
         ats_tipo = expresion(folset | CCOMA);
-        chequear_tipos(tipo_param, ats_tipo, 91);
-    }
-    es_parametro = 0;
+        
+         cont_params++;
+		
+		if (pos != NIL && hayMasParamsFormales) {
+			if (tipo_param_formal == en_tabla("array")) {
+				if (expresionActual != EXPRESION_ARREGLO) {	// estos IFs deben estar anidados !!! (no combinar la condicion)
+					error_handler(93);
+				}
+			}
+			else {
+				if (expresionActual == EXPRESION_ARREGLO) {
+					error_handler(91);
+				}
+				else {
+					if (param_es_arreglo) {
+						chequear_tipos(tipo_base_param_formal, ats_tipo, 91);
+					}
+					else {
+						chequear_tipos(tipo_param_formal, ats_tipo, 91);
+					}
+				}
+				
+				if ((pasaje_param_formal == 'r') && (expresionActual != EXPRESION_VARIABLE)) {
+					error_handler(92);
+				}
+			}
+		}
+		expresionActual = EXPRESION_FIN;
+		cant_params_formales_aux--;
+		hayMasParamsFormales = cant_params_formales_aux > 0;
+	}
+	
+	if ((cant_params_formales != cont_params) && (pos != NIL)) {
+		error_handler(90);
+	}
+         es_parametro = 0;
 }
+
+
 
 int constante(set folset, int ath_tipo) {
     char tmp[TAM_LEXEMA];
@@ -2128,9 +2242,9 @@ void insertarEnTSVariable() {
         inf_id->clase = CLASVAR;
         if (es_arreglo) {
             inf_id->ptr_tipo = en_tabla("array");
-            inf_id->cant_byte = ts[inf_id->ptr_tipo].ets->cant_byte
+            inf_id->cant_byte = ts[inf_id->desc.part_var.arr.ptero_tipo_base].ets->cant_byte
                     * tam_arreglo;
-            inf_id->desc.part_var.arr.ptero_tipo_base = inf_id->ptr_tipo;
+            //inf_id->desc.part_var.arr.ptero_tipo_base = tipoDeRetornoDeclaracion;
             inf_id->desc.part_var.arr.cant_elem = tam_arreglo;
 
         } else {
