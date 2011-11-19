@@ -53,6 +53,8 @@
  typedef struct inf_res{
    int ptero_tipo;              // tipo del parametro
    char tipo_pje;               // tipo de pasaje: valor o referncia
+   int arreglo;				// si el param es arreglo
+   int ptr_tipo_base;
    struct inf_res  *ptr_sig;    // siguiente parametro
  }tipo_inf_res;
 
@@ -60,7 +62,7 @@
 
 
 // ------------------------- STC_TS ---------------------------
-//   Estructura propia de: variables (anonimas), subrutinas y par metros
+//   Estructura propia de: variables (anonimas), subrutinas y parï¿½metros
 
 
 typedef struct {
@@ -98,7 +100,7 @@ typedef struct {
 
 
 // ------------------------ ENTRADA_TS ---------------------------
-//          Estructura de una entrada en la tabla de s¡mbolos
+//          Estructura de una entrada en la tabla de sï¿½mbolos
 
 typedef struct{
 
@@ -120,7 +122,7 @@ typedef struct{
 
 
 // ---------------------------- TIPO_TS -----------------------------
-//          Estructura que define el tipo de la tabla de s¡mbolos
+//          Estructura que define el tipo de la tabla de sï¿½mbolos
 
 typedef struct {
 

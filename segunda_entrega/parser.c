@@ -800,6 +800,12 @@ void declaracion_parametro(set folset) {
         }
     }
     (*ptr_inf_res)->ptero_tipo = inf_id->ptr_tipo;
+    (*ptr_inf_res)->arreglo = es_arreglo;
+    if (es_arreglo) {
+        (*ptr_inf_res)->ptr_tipo_base = inf_id->desc.part_var.arr.ptero_tipo_base;
+    } else {
+        (*ptr_inf_res)->ptr_tipo_base = NIL;
+    }
     ptr_inf_res= &((*ptr_inf_res)->ptr_sig);
     
     (*ptr_cant_params)++;
@@ -1976,8 +1982,8 @@ void lista_expresiones(set folset, char lexema[]) {
 			hayMasParamsFormales = 0;;
 			tipo_param_formal = params->ptero_tipo;
 			pasaje_param_formal = params->tipo_pje;
-			tipo_base_param_formal = params->ptero_tipo;
-			param_es_arreglo = params->ptero_tipo;
+			tipo_base_param_formal = params->ptr_tipo_base;
+			param_es_arreglo = params->arreglo;
 		}
 	}
     expresionActual = EXPRESION_INIT;
@@ -2027,8 +2033,8 @@ void lista_expresiones(set folset, char lexema[]) {
 			params = params->ptr_sig;
 			tipo_param_formal = params->ptero_tipo;
 			pasaje_param_formal = params->tipo_pje;
-			tipo_base_param_formal = params->ptero_tipo;
-			param_es_arreglo = params->tipo_pje;
+			tipo_base_param_formal = params->ptr_tipo_base;
+			param_es_arreglo = params->arreglo;
 		}
 		
 		expresionActual = EXPRESION_INIT;
